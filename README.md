@@ -1,2 +1,1 @@
-# postsy3.1
-Postsy app
+postsy2.0
