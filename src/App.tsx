@@ -293,7 +293,7 @@ const MainFeed = ({
   unreadMessageCount: number;
   unreadNotificationCount: number;
 }) => {
-  const [feedFilter, setFeedFilter] = useState<'all' | 'popular' | 'nearby'>('all');
+  const [feedFilter, setFeedFilter] = useState<'nearby' | 'popular' | 'all'>('nearby');
 
   const filteredPosts = posts.filter(post => {
     if (feedFilter === 'popular') {
@@ -351,15 +351,15 @@ const MainFeed = ({
         {/* Feed Filter Tabs */}
         <div className="flex space-x-1 bg-gray-800 rounded-xl p-1">
           <button
-            onClick={() => setFeedFilter('all')}
+            onClick={() => setFeedFilter('nearby')}
             className={`flex-1 flex items-center justify-center space-x-2 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
-              feedFilter === 'all'
+              feedFilter === 'nearby'
                 ? 'bg-white text-gray-800'
                 : 'text-gray-400 hover:text-gray-300'
             }`}
           >
-            <Home className="w-4 h-4" />
-            <span>All</span>
+            <MapPin className="w-4 h-4" />
+            <span>Nearby</span>
           </button>
           <button
             onClick={() => setFeedFilter('popular')}
@@ -373,15 +373,15 @@ const MainFeed = ({
             <span>Popular</span>
           </button>
           <button
-            onClick={() => setFeedFilter('nearby')}
+            onClick={() => setFeedFilter('all')}
             className={`flex-1 flex items-center justify-center space-x-2 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
-              feedFilter === 'nearby'
+              feedFilter === 'all'
                 ? 'bg-white text-gray-800'
                 : 'text-gray-400 hover:text-gray-300'
             }`}
           >
-            <MapPin className="w-4 h-4" />
-            <span>Nearby</span>
+            <Home className="w-4 h-4" />
+            <span>All</span>
           </button>
         </div>
       </div>
