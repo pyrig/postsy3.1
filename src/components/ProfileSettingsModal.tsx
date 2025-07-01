@@ -1,20 +1,22 @@
 import React, { useState } from 'react';
-import { X, Eye, EyeOff, Mail, Lock, Save, AlertCircle, CheckCircle, Shield, User } from 'lucide-react';
+import { X, Eye, EyeOff, Mail, Lock, Save, AlertCircle, CheckCircle, Shield, User, LogOut, Trash2 } from 'lucide-react';
 
 interface ProfileSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   userData: { username: string; email?: string } | null;
   onUpdateProfile: (updates: { email?: string; password?: string }) => void;
+  onLogout?: () => void;
 }
 
 export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
   isOpen,
   onClose,
   userData,
-  onUpdateProfile
+  onUpdateProfile,
+  onLogout
 }) => {
-  const [activeTab, setActiveTab] = useState<'email' | 'password'>('email');
+  const [activeTab, setActiveTab] = useState<'email' | 'password' | 'account'>('email');
   const [formData, setFormData] = useState({
     email: userData?.email || '',
     currentPassword: '',
@@ -29,6 +31,8 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const resetModal = () => {
     setFormData({
@@ -42,11 +46,30 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
     setSuccess('');
     setError('');
     setActiveTab('email');
+    setShowLogoutConfirm(false);
+    setShowDeleteConfirm(false);
   };
 
   const handleClose = () => {
     resetModal();
     onClose();
+  };
+
+  const handleLogout = () => {
+    if (onLogout) {
+      onLogout();
+      handleClose();
+    }
+  };
+
+  const handleDeleteAccount = () => {
+    // In a real app, this would make an API call to delete the account
+    console.log('Account deletion requested');
+    // For demo purposes, we'll just logout
+    if (onLogout) {
+      onLogout();
+      handleClose();
+    }
   };
 
   const handleEmailUpdate = async (e: React.FormEvent) => {
@@ -165,25 +188,36 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
           <div className="flex space-x-1 bg-gray-800 rounded-xl p-1">
             <button
               onClick={() => setActiveTab('email')}
-              className={`flex-1 flex items-center justify-center space-x-2 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+              className={`flex-1 flex items-center justify-center space-x-2 py-2 px-2 rounded-lg text-sm font-medium transition-all ${
                 activeTab === 'email'
                   ? 'bg-white text-gray-800'
                   : 'text-gray-400 hover:text-gray-300'
               }`}
             >
               <Mail className="w-4 h-4" />
-              <span>Email</span>
+              <span className="hidden sm:inline">Email</span>
             </button>
             <button
               onClick={() => setActiveTab('password')}
-              className={`flex-1 flex items-center justify-center space-x-2 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+              className={`flex-1 flex items-center justify-center space-x-2 py-2 px-2 rounded-lg text-sm font-medium transition-all ${
                 activeTab === 'password'
                   ? 'bg-white text-gray-800'
                   : 'text-gray-400 hover:text-gray-300'
               }`}
             >
               <Lock className="w-4 h-4" />
-              <span>Password</span>
+              <span className="hidden sm:inline">Password</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('account')}
+              className={`flex-1 flex items-center justify-center space-x-2 py-2 px-2 rounded-lg text-sm font-medium transition-all ${
+                activeTab === 'account'
+                  ? 'bg-white text-gray-800'
+                  : 'text-gray-400 hover:text-gray-300'
+              }`}
+            >
+              <User className="w-4 h-4" />
+              <span className="hidden sm:inline">Account</span>
             </button>
           </div>
         </div>
@@ -397,6 +431,128 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
               </form>
             </div>
           )}
+
+          {/* Account Tab */}
+          {activeTab === 'account' && (
+            <div className="p-4">
+              <div className="mb-6">
+                <div className="flex items-center space-x-2 mb-3">
+                  <User className="w-5 h-5 text-green-400" />
+                  <h3 className="text-lg font-semibold text-white">Account Management</h3>
+                </div>
+                <p className="text-gray-400 text-sm">
+                  Manage your account settings and data.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                {/* Account Info */}
+                <div className="p-4 bg-gray-800 rounded-xl border border-gray-700">
+                  <h4 className="font-semibold text-white text-sm mb-3">Account Information</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Username:</span>
+                      <span className="text-white font-mono">@{userData?.username}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Email:</span>
+                      <span className="text-white">{userData?.email || 'Not set'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Account Type:</span>
+                      <span className="text-white">Anonymous</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Logout Section */}
+                <div className="p-4 bg-orange-900/20 border border-orange-700 rounded-xl">
+                  <div className="flex items-start space-x-3 mb-3">
+                    <LogOut className="w-5 h-5 text-orange-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-orange-300 text-sm">Sign Out</h4>
+                      <p className="text-orange-200 text-xs mt-1">
+                        Sign out of your account on this device. You can sign back in anytime.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {!showLogoutConfirm ? (
+                    <button
+                      onClick={() => setShowLogoutConfirm(true)}
+                      className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-xl transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>Sign Out</span>
+                    </button>
+                  ) : (
+                    <div className="space-y-3">
+                      <p className="text-orange-200 text-sm text-center">
+                        Are you sure you want to sign out?
+                      </p>
+                      <div className="flex space-x-3">
+                        <button
+                          onClick={() => setShowLogoutConfirm(false)}
+                          className="flex-1 px-4 py-2 border border-gray-600 text-gray-300 font-medium rounded-lg hover:bg-gray-800 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleLogout}
+                          className="flex-1 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-medium rounded-lg transition-colors"
+                        >
+                          Sign Out
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Delete Account Section */}
+                <div className="p-4 bg-red-900/20 border border-red-700 rounded-xl">
+                  <div className="flex items-start space-x-3 mb-3">
+                    <Trash2 className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-semibold text-red-300 text-sm">Delete Account</h4>
+                      <p className="text-red-200 text-xs mt-1">
+                        Permanently delete your account and all associated data. This action cannot be undone.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {!showDeleteConfirm ? (
+                    <button
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>Delete Account</span>
+                    </button>
+                  ) : (
+                    <div className="space-y-3">
+                      <p className="text-red-200 text-sm text-center">
+                        This will permanently delete your account and all your posts. Are you absolutely sure?
+                      </p>
+                      <div className="flex space-x-3">
+                        <button
+                          onClick={() => setShowDeleteConfirm(false)}
+                          className="flex-1 px-4 py-2 border border-gray-600 text-gray-300 font-medium rounded-lg hover:bg-gray-800 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleDeleteAccount}
+                          className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors"
+                        >
+                          Delete Forever
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
@@ -405,7 +561,7 @@ export const ProfileSettingsModal: React.FC<ProfileSettingsModalProps> = ({
             onClick={handleClose}
             className="w-full px-4 py-3 border border-gray-600 text-gray-300 font-medium rounded-xl hover:bg-gray-800 transition-colors"
           >
-            Cancel
+            Close
           </button>
         </div>
       </div>

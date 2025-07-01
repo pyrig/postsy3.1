@@ -30,6 +30,7 @@ interface MyPostsPageProps {
   userData: { username: string; registrationDate: string; email?: string } | null;
   posts: Post[];
   onDeletePost: (postId: number) => void;
+  onLogout?: () => void;
 }
 
 const StatusBar = () => (
@@ -339,7 +340,8 @@ export const MyPostsPage: React.FC<MyPostsPageProps> = ({
   onBack,
   userData,
   posts,
-  onDeletePost
+  onDeletePost,
+  onLogout
 }) => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
@@ -567,6 +569,7 @@ export const MyPostsPage: React.FC<MyPostsPageProps> = ({
         onClose={() => setIsSettingsModalOpen(false)}
         userData={currentUserData}
         onUpdateProfile={handleUpdateProfile}
+        onLogout={onLogout}
       />
     </div>
   );
