@@ -8,7 +8,8 @@ import { NearbyPage } from './components/NearbyPage';
 import { MyPostsPage } from './components/MyPostsPage';
 import { MessagesPage } from './components/MessagesPage';
 import { SearchPage } from './components/SearchPage';
-import { Plus, Home, Users, MapPin, Flame, MessageCircle, User, Settings, Search, Heart, Type, MoreVertical, Edit3 } from 'lucide-react';
+import { NotificationModal } from './components/NotificationModal';
+import { Plus, Home, Users, MapPin, Flame, MessageCircle, User, Settings, Search, Heart, Type, MoreVertical, Edit3, Bell } from 'lucide-react';
 
 interface UserData {
   username: string;
@@ -36,6 +37,19 @@ interface Group {
   invitedMembers: string[];
   image: string;
   tags: string[];
+}
+
+interface Notification {
+  id: string;
+  type: 'like' | 'comment' | 'follow' | 'group_invite' | 'mention';
+  title: string;
+  message: string;
+  timestamp: Date;
+  isRead: boolean;
+  avatar?: string;
+  username?: string;
+  postId?: string;
+  groupId?: string;
 }
 
 const StatusBar = () => (
@@ -125,6 +139,77 @@ const mockPosts: Post[] = [
   }
 ];
 
+// Mock notifications data
+const mockNotifications: Notification[] = [
+  {
+    id: '1',
+    type: 'like',
+    title: 'New Like',
+    message: 'ALEX9876 liked your post about coffee shop vibes',
+    timestamp: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
+    isRead: false,
+    username: 'ALEX9876',
+    postId: '4'
+  },
+  {
+    id: '2',
+    type: 'comment',
+    title: 'New Comment',
+    message: 'SARAH123 commented on your post: "I totally agree! That place has amazing energy"',
+    timestamp: new Date(Date.now() - 45 * 60 * 1000), // 45 minutes ago
+    isRead: false,
+    username: 'SARAH123',
+    postId: '4'
+  },
+  {
+    id: '3',
+    type: 'follow',
+    title: 'New Follower',
+    message: 'MIKE4567 started following you',
+    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+    isRead: false,
+    username: 'MIKE4567'
+  },
+  {
+    id: '4',
+    type: 'group_invite',
+    title: 'Group Invitation',
+    message: 'You were invited to join "Mental Health Support" group',
+    timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
+    isRead: true,
+    groupId: 'mental-health'
+  },
+  {
+    id: '5',
+    type: 'like',
+    title: 'New Like',
+    message: 'EMMA8901 liked your post about sunset views',
+    timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
+    isRead: true,
+    username: 'EMMA8901',
+    postId: '5'
+  },
+  {
+    id: '6',
+    type: 'mention',
+    title: 'You were mentioned',
+    message: 'JOHN2345 mentioned you in a comment',
+    timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12 hours ago
+    isRead: true,
+    username: 'JOHN2345'
+  },
+  {
+    id: '7',
+    type: 'comment',
+    title: 'New Comment',
+    message: 'LISA6789 commented on your post: "This is so inspiring! Thank you for sharing"',
+    timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
+    isRead: true,
+    username: 'LISA6789',
+    postId: '6'
+  }
+];
+
 const PostCard = ({ post }: { post: Post }) => (
   <div className="relative rounded-2xl overflow-hidden shadow-lg group cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl bg-gray-800 border border-gray-700">
     <div className="aspect-[3/4] relative">
@@ -175,14 +260,18 @@ const MainFeed = ({
   activeTab, 
   posts, 
   onMessagesClick,
+  onNotificationsClick,
   userData,
-  unreadMessageCount 
+  unreadMessageCount,
+  unreadNotificationCount
 }: { 
   activeTab: string;
   posts: Post[];
   onMessagesClick: () => void;
+  onNotificationsClick: () => void;
   userData: UserData | null;
   unreadMessageCount: number;
+  unreadNotificationCount: number;
 }) => {
   const [feedFilter, setFeedFilter] = useState<'all' | 'popular' | 'nearby'>('all');
 
@@ -210,6 +299,19 @@ const MainFeed = ({
             />
           </div>
           <div className="flex items-center space-x-3">
+            <button
+              onClick={onNotificationsClick}
+              className="relative p-2 hover:bg-gray-800 rounded-full transition-colors"
+            >
+              <Bell className="w-6 h-6 text-white" />
+              {unreadNotificationCount > 0 && (
+                <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                  <span className="text-xs font-bold text-white">
+                    {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
+                  </span>
+                </div>
+              )}
+            </button>
             <button
               onClick={onMessagesClick}
               className="relative p-2 hover:bg-gray-800 rounded-full transition-colors"
@@ -370,7 +472,11 @@ function App() {
   const [posts, setPosts] = useState<Post[]>(mockPosts);
   const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
   const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [unreadMessageCount, setUnreadMessageCount] = useState(3); // Mock unread count
+  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+
+  const unreadNotificationCount = notifications.filter(n => !n.isRead).length;
 
   const handleLogin = (user?: UserData) => {
     setIsAuthenticated(true);
@@ -430,6 +536,10 @@ function App() {
     setUnreadMessageCount(0); // Clear unread count when viewing messages
   };
 
+  const handleNotificationsClick = () => {
+    setIsNotificationModalOpen(true);
+  };
+
   const handleProfileClick = () => {
     setCurrentPage('profile');
     setActiveTab('profile');
@@ -443,6 +553,25 @@ function App() {
   const handleCreatePostClick = () => {
     setIsCreatePostModalOpen(true);
     setActiveTab('create');
+  };
+
+  const handleMarkNotificationAsRead = (notificationId: string) => {
+    setNotifications(prev => prev.map(notification =>
+      notification.id === notificationId
+        ? { ...notification, isRead: true }
+        : notification
+    ));
+  };
+
+  const handleMarkAllNotificationsAsRead = () => {
+    setNotifications(prev => prev.map(notification => ({
+      ...notification,
+      isRead: true
+    })));
+  };
+
+  const handleDeleteNotification = (notificationId: string) => {
+    setNotifications(prev => prev.filter(notification => notification.id !== notificationId));
   };
 
   if (!isAuthenticated) {
@@ -538,8 +667,10 @@ function App() {
         activeTab={activeTab}
         posts={posts}
         onMessagesClick={handleMessagesClick}
+        onNotificationsClick={handleNotificationsClick}
         userData={userData}
         unreadMessageCount={unreadMessageCount}
+        unreadNotificationCount={unreadNotificationCount}
       />
       <BottomNavigation 
         activeTab={activeTab} 
@@ -553,6 +684,14 @@ function App() {
         onClose={() => setIsCreatePostModalOpen(false)}
         onCreatePost={handleCreatePost}
         userData={userData}
+      />
+      <NotificationModal
+        isOpen={isNotificationModalOpen}
+        onClose={() => setIsNotificationModalOpen(false)}
+        notifications={notifications}
+        onMarkAsRead={handleMarkNotificationAsRead}
+        onMarkAllAsRead={handleMarkAllNotificationsAsRead}
+        onDeleteNotification={handleDeleteNotification}
       />
     </>
   );
