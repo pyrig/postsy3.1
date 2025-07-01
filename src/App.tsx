@@ -209,6 +209,12 @@ const MainFeed = ({
           </div>
           <div className="flex items-center space-x-3">
             <button
+              onClick={onCreatePost}
+              className="p-2 hover:bg-gray-800 rounded-full transition-colors"
+            >
+              <Edit3 className="w-6 h-6 text-white" />
+            </button>
+            <button
               onClick={onMessagesClick}
               className="relative p-2 hover:bg-gray-800 rounded-full transition-colors"
             >
@@ -220,12 +226,6 @@ const MainFeed = ({
                   </span>
                 </div>
               )}
-            </button>
-            <button
-              onClick={onCreatePost}
-              className="p-2 hover:bg-gray-800 rounded-full transition-colors"
-            >
-              <Edit3 className="w-6 h-6 text-white" />
             </button>
           </div>
         </div>
