@@ -5,7 +5,6 @@ import { ProfileSettingsModal } from './ProfileSettingsModal';
 interface Post {
   id: number;
   text: string;
-  image: string;
   likes: number;
   comments: number;
   timeAgo: string;
@@ -175,32 +174,28 @@ const PostCard = ({
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'popular': return 'text-blue-400 bg-blue-900/20';
-      case 'groups': return 'text-green-400 bg-green-900/20';
-      case 'nearby': return 'text-purple-400 bg-purple-900/20';
-      case 'latest': return 'text-white bg-white/20';
-      default: return 'text-gray-400 bg-gray-800';
+      case 'popular': return 'text-red-400 bg-red-900/20 border-red-700';
+      case 'groups': return 'text-green-400 bg-green-900/20 border-green-700';
+      case 'nearby': return 'text-purple-400 bg-purple-900/20 border-purple-700';
+      case 'latest': return 'text-blue-400 bg-blue-900/20 border-blue-700';
+      default: return 'text-gray-400 bg-gray-800 border-gray-600';
     }
   };
 
   return (
-    <div className="bg-gray-800 rounded-2xl overflow-hidden border border-gray-700 shadow-lg">
-      <div className="aspect-[3/4] relative">
-        <img 
-          src={post.image} 
-          alt="" 
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-        
-        {/* Post Menu */}
-        <div className="absolute top-3 right-3">
+    <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-gray-600 transition-all group">
+      <div className="space-y-4">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getCategoryColor(post.category)}`}>
+            {post.category.toUpperCase()}
+          </span>
           <div className="relative">
             <button
               onClick={() => setShowMenu(!showMenu)}
-              className="p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors"
+              className="p-2 hover:bg-gray-700 rounded-full transition-colors opacity-0 group-hover:opacity-100"
             >
-              <MoreVertical className="w-4 h-4 text-white" />
+              <MoreVertical className="w-4 h-4 text-gray-400" />
             </button>
             
             {showMenu && (
@@ -219,33 +214,27 @@ const PostCard = ({
             )}
           </div>
         </div>
-        
-        <div className="absolute inset-0 p-4 flex flex-col justify-between">
-          <div className="flex justify-start">
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(post.category)}`}>
-              {post.category.toUpperCase()}
-            </span>
-          </div>
-          
-          <div className="space-y-3">
-            <p className="text-white font-medium text-sm leading-relaxed drop-shadow-lg">
-              {post.text}
-            </p>
-            
-            <div className="flex items-center justify-between text-white/80 text-xs">
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-1">
-                  <Heart className="w-4 h-4" />
-                  <span>{post.likes.toLocaleString()}</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <MessageCircle className="w-4 h-4" />
-                  <span>{post.comments}</span>
-                </div>
-              </div>
-              <span className="text-white/60">{post.timeAgo}</span>
+
+        {/* Content */}
+        <div>
+          <p className="text-white text-base leading-relaxed">
+            {post.text}
+          </p>
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between pt-2 border-t border-gray-700">
+          <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-2 text-gray-400">
+              <Heart className="w-5 h-5" />
+              <span className="text-sm font-medium">{post.likes.toLocaleString()}</span>
+            </div>
+            <div className="flex items-center space-x-2 text-gray-400">
+              <MessageCircle className="w-5 h-5" />
+              <span className="text-sm font-medium">{post.comments}</span>
             </div>
           </div>
+          <span className="text-sm text-gray-500">{post.timeAgo}</span>
         </div>
       </div>
     </div>
@@ -429,7 +418,7 @@ export const MyPostsPage: React.FC<MyPostsPageProps> = ({
         {activeTab === 'posts' && (
           <div>
             {userPosts.length > 0 ? (
-              <div className="grid grid-cols-1 gap-4">
+              <div className="space-y-4">
                 {userPosts.map((post) => (
                   <PostCard
                     key={post.id}

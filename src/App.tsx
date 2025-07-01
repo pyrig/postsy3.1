@@ -19,7 +19,6 @@ interface UserData {
 interface Post {
   id: number;
   text: string;
-  image: string;
   likes: number;
   comments: number;
   timeAgo: string;
@@ -85,7 +84,6 @@ const mockPosts: Post[] = [
   {
     id: 1,
     text: "Do you think it's okay to have a 'man of honor' instead of 'maid of honor' at your wedding if your best friend for 5 years is a guy?",
-    image: "https://images.pexels.com/photos/1616403/pexels-photo-1616403.jpeg?auto=compress&cs=tinysrgb&w=400&h=600&fit=crop",
     likes: 4821,
     comments: 892,
     timeAgo: "3h",
@@ -93,8 +91,7 @@ const mockPosts: Post[] = [
   },
   {
     id: 2,
-    text: "When I heard about Pokemon GO",
-    image: "https://images.pexels.com/photos/1076758/pexels-photo-1076758.jpeg?auto=compress&cs=tinysrgb&w=400&h=600&fit=crop",
+    text: "When I heard about Pokemon GO, I thought it was just another mobile game. Boy was I wrong! It completely changed how I see my neighborhood and got me walking again.",
     likes: 3456,
     comments: 567,
     timeAgo: "5h",
@@ -102,8 +99,7 @@ const mockPosts: Post[] = [
   },
   {
     id: 3,
-    text: "My girlfriend bought me cheese for our anniversary 😂",
-    image: "https://images.pexels.com/photos/4393021/pexels-photo-4393021.jpeg?auto=compress&cs=tinysrgb&w=400&h=600&fit=crop",
+    text: "My girlfriend bought me cheese for our anniversary 😂 Not just any cheese - she got me a whole selection from this fancy cheese shop. Honestly, it was the most thoughtful gift ever!",
     likes: 2987,
     comments: 423,
     timeAgo: "8h",
@@ -111,8 +107,7 @@ const mockPosts: Post[] = [
   },
   {
     id: 4,
-    text: "Coffee shop vibes hit different when you're working on your dreams",
-    image: "https://images.pexels.com/photos/1001850/pexels-photo-1001850.jpeg?auto=compress&cs=tinysrgb&w=400&h=600&fit=crop",
+    text: "Coffee shop vibes hit different when you're working on your dreams. There's something about the ambient noise and caffeine that just makes everything click.",
     likes: 1876,
     comments: 234,
     timeAgo: "2h",
@@ -121,8 +116,7 @@ const mockPosts: Post[] = [
   },
   {
     id: 5,
-    text: "The sunset tonight reminded me why I love this place",
-    image: "https://images.pexels.com/photos/1166209/pexels-photo-1166209.jpeg?auto=compress&cs=tinysrgb&w=400&h=600&fit=crop",
+    text: "The sunset tonight reminded me why I love this place. Sometimes you need to stop and appreciate the simple beauty around you.",
     likes: 3245,
     comments: 456,
     timeAgo: "1h",
@@ -130,12 +124,27 @@ const mockPosts: Post[] = [
   },
   {
     id: 6,
-    text: "Sometimes the smallest gestures mean the most",
-    image: "https://images.pexels.com/photos/1212487/pexels-photo-1212487.jpeg?auto=compress&cs=tinysrgb&w=400&h=600&fit=crop",
+    text: "Sometimes the smallest gestures mean the most. A stranger held the door for me today and it completely turned my mood around. Kindness is contagious.",
     likes: 5432,
     comments: 789,
     timeAgo: "4h",
     category: 'latest'
+  },
+  {
+    id: 7,
+    text: "I wish people understood my depression. I can go from happy to sad in a blink of an eye because it all builds up inside. Wish I could handle it better.",
+    likes: 6234,
+    comments: 1456,
+    timeAgo: "12h",
+    category: 'popular'
+  },
+  {
+    id: 8,
+    text: "Late night study session at the 24/7 diner. Their pie is keeping me going! 🥧 Sometimes the best productivity happens when the world is quiet.",
+    likes: 567,
+    comments: 89,
+    timeAgo: "6h",
+    category: 'nearby'
   }
 ];
 
@@ -210,51 +219,62 @@ const mockNotifications: Notification[] = [
   }
 ];
 
-const PostCard = ({ post }: { post: Post }) => (
-  <div className="relative rounded-2xl overflow-hidden shadow-lg group cursor-pointer transform transition-all duration-300 hover:scale-105 hover:shadow-2xl bg-gray-800 border border-gray-700">
-    <div className="aspect-[3/4] relative">
-      <img 
-        src={post.image} 
-        alt="" 
-        className="w-full h-full object-cover"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-      
-      <div className="absolute inset-0 p-4 flex flex-col justify-between">
-        <div className="flex justify-between items-start">
-          {post.groupName && (
-            <span className="px-2 py-1 bg-white/20 text-white text-xs font-medium rounded-full border border-white/30">
-              {post.groupName}
+const PostCard = ({ post }: { post: Post }) => {
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'popular': return 'text-red-400 bg-red-900/20 border-red-700';
+      case 'groups': return 'text-green-400 bg-green-900/20 border-green-700';
+      case 'nearby': return 'text-purple-400 bg-purple-900/20 border-purple-700';
+      case 'latest': return 'text-blue-400 bg-blue-900/20 border-blue-700';
+      default: return 'text-gray-400 bg-gray-800 border-gray-600';
+    }
+  };
+
+  return (
+    <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-gray-600 transition-all cursor-pointer group">
+      <div className="space-y-4">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            {post.groupName && (
+              <span className="px-2 py-1 bg-white/10 text-white text-xs font-medium rounded-full border border-white/20">
+                {post.groupName}
+              </span>
+            )}
+            <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getCategoryColor(post.category)}`}>
+              {post.category.toUpperCase()}
             </span>
-          )}
-          <button className="p-2 bg-black/50 hover:bg-black/70 rounded-full transition-colors">
-            <MoreVertical className="w-4 h-4 text-white" />
+          </div>
+          <button className="p-2 hover:bg-gray-700 rounded-full transition-colors opacity-0 group-hover:opacity-100">
+            <MoreVertical className="w-4 h-4 text-gray-400" />
           </button>
         </div>
-        
-        <div className="space-y-3">
-          <p className="text-white font-medium text-sm leading-relaxed drop-shadow-lg">
+
+        {/* Content */}
+        <div>
+          <p className="text-white text-base leading-relaxed">
             {post.text}
           </p>
-          
-          <div className="flex items-center justify-between text-white/80 text-xs">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-1 hover:text-white transition-colors">
-                <Heart className="w-4 h-4" />
-                <span>{post.likes.toLocaleString()}</span>
-              </div>
-              <div className="flex items-center space-x-1 hover:text-white transition-colors">
-                <MessageCircle className="w-4 h-4" />
-                <span>{post.comments}</span>
-              </div>
-            </div>
-            <span className="text-white/60">{post.timeAgo}</span>
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between pt-2 border-t border-gray-700">
+          <div className="flex items-center space-x-6">
+            <button className="flex items-center space-x-2 text-gray-400 hover:text-red-400 transition-colors group/like">
+              <Heart className="w-5 h-5 group-hover/like:scale-110 transition-transform" />
+              <span className="text-sm font-medium">{post.likes.toLocaleString()}</span>
+            </button>
+            <button className="flex items-center space-x-2 text-gray-400 hover:text-blue-400 transition-colors group/comment">
+              <MessageCircle className="w-5 h-5 group-hover/comment:scale-110 transition-transform" />
+              <span className="text-sm font-medium">{post.comments}</span>
+            </button>
           </div>
+          <span className="text-sm text-gray-500">{post.timeAgo}</span>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const MainFeed = ({ 
   activeTab, 
@@ -369,7 +389,7 @@ const MainFeed = ({
       {/* Content */}
       <div className="flex-1 p-4 pb-24">
         {filteredPosts.length > 0 ? (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4">
             {filteredPosts.map((post) => (
               <PostCard key={post.id} post={post} />
             ))}
@@ -481,14 +501,12 @@ function App() {
 
   const handleCreatePost = (newPost: {
     text: string;
-    image: string;
     category: 'groups' | 'popular' | 'nearby' | 'latest';
     privacy: 'public' | 'friends' | 'private';
   }) => {
     const post: Post = {
       id: posts.length + 1,
       text: newPost.text,
-      image: newPost.image,
       likes: 0,
       comments: 0,
       timeAgo: 'now',
