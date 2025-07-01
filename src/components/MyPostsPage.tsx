@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Trash2, Heart, MessageCircle, MoreVertical, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Trash2, Heart, MessageCircle, MoreVertical, AlertTriangle, User, Calendar, Hash, Reply } from 'lucide-react';
 
 interface Post {
   id: number;
@@ -11,9 +11,19 @@ interface Post {
   category: 'groups' | 'popular' | 'nearby' | 'latest';
 }
 
+interface Reply {
+  id: number;
+  postId: number;
+  originalPostText: string;
+  replyText: string;
+  likes: number;
+  timeAgo: string;
+  originalAuthor: string;
+}
+
 interface MyPostsPageProps {
   onBack: () => void;
-  userData: { username: string } | null;
+  userData: { username: string; registrationDate: string } | null;
   posts: Post[];
   onDeletePost: (postId: number) => void;
 }
@@ -46,6 +56,46 @@ const StatusBar = () => (
     </div>
   </div>
 );
+
+// Mock replies data
+const mockReplies: Reply[] = [
+  {
+    id: 1,
+    postId: 101,
+    originalPostText: "What's your favorite coffee shop in the city?",
+    replyText: "Definitely the one on Main Street! Their lattes are incredible and the atmosphere is perfect for studying.",
+    likes: 23,
+    timeAgo: "2h",
+    originalAuthor: "COFFEE_LOVER"
+  },
+  {
+    id: 2,
+    postId: 102,
+    originalPostText: "Anyone else struggling with work-life balance?",
+    replyText: "I feel you! I started setting strict boundaries with work hours and it's helped a lot. Also meditation apps are game changers.",
+    likes: 45,
+    timeAgo: "5h",
+    originalAuthor: "BUSY_BEE"
+  },
+  {
+    id: 3,
+    postId: 103,
+    originalPostText: "Best study spots near campus?",
+    replyText: "The library's third floor is usually quiet, and there's a great cafe called 'Bean There' just off campus with good wifi!",
+    likes: 12,
+    timeAgo: "1d",
+    originalAuthor: "STUDENT_LIFE"
+  },
+  {
+    id: 4,
+    postId: 104,
+    originalPostText: "Feeling overwhelmed with everything lately...",
+    replyText: "You're not alone in feeling this way. Take it one day at a time and don't be afraid to reach out for support when you need it. 💙",
+    likes: 67,
+    timeAgo: "2d",
+    originalAuthor: "ANONYMOUS_USER"
+  }
+];
 
 const DeleteConfirmModal = ({ 
   isOpen, 
@@ -201,6 +251,34 @@ const PostCard = ({
   );
 };
 
+const ReplyCard = ({ reply }: { reply: Reply }) => (
+  <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
+    <div className="mb-3">
+      <div className="flex items-center space-x-2 mb-2">
+        <Reply className="w-4 h-4 text-gray-400" />
+        <span className="text-xs text-gray-400">Replying to @{reply.originalAuthor}</span>
+      </div>
+      <p className="text-sm text-gray-400 italic line-clamp-2">
+        "{reply.originalPostText}"
+      </p>
+    </div>
+    
+    <p className="text-white text-sm leading-relaxed mb-3">
+      {reply.replyText}
+    </p>
+    
+    <div className="flex items-center justify-between text-xs text-gray-400">
+      <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-1">
+          <Heart className="w-3 h-3" />
+          <span>{reply.likes}</span>
+        </div>
+      </div>
+      <span>{reply.timeAgo}</span>
+    </div>
+  </div>
+);
+
 export const MyPostsPage: React.FC<MyPostsPageProps> = ({
   onBack,
   userData,
@@ -209,6 +287,7 @@ export const MyPostsPage: React.FC<MyPostsPageProps> = ({
 }) => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
+  const [activeTab, setActiveTab] = useState<'posts' | 'replies'>('posts');
 
   // Filter posts that belong to the current user (in a real app, this would be based on user ID)
   // For demo purposes, we'll show the first few posts as user's posts
@@ -232,6 +311,14 @@ export const MyPostsPage: React.FC<MyPostsPageProps> = ({
     setPostToDelete(null);
   };
 
+  const formatJoinDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      month: 'long', 
+      year: 'numeric' 
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col max-w-md mx-auto shadow-2xl">
       <StatusBar />
@@ -246,73 +333,134 @@ export const MyPostsPage: React.FC<MyPostsPageProps> = ({
             <ArrowLeft className="w-5 h-5 text-gray-400" />
           </button>
           <div>
-            <h1 className="text-lg font-semibold text-white">My Postys</h1>
-            <p className="text-sm text-gray-400">
-              @{userData?.username || 'GUEST'} • {userPosts.length} posts
-            </p>
+            <h1 className="text-lg font-semibold text-white">Profile</h1>
+            <p className="text-sm text-gray-400">Your anonymous identity</p>
           </div>
         </div>
       </div>
 
       {/* Content */}
       <div className="flex-1 p-4 pb-8">
-        {userPosts.length > 0 ? (
-          <div className="space-y-4">
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-gradient-to-br from-white to-gray-300 rounded-full mx-auto mb-3 flex items-center justify-center">
-                <MessageCircle className="w-8 h-8 text-gray-800" />
-              </div>
-              <h2 className="text-xl font-semibold text-white mb-1">Your Posts</h2>
-              <p className="text-gray-400 text-sm">
-                Manage and review all your shared thoughts
+        {/* Profile Header */}
+        <div className="text-center mb-6">
+          <div className="w-20 h-20 bg-gradient-to-br from-white to-gray-300 rounded-full mx-auto mb-4 flex items-center justify-center">
+            <User className="w-10 h-10 text-gray-800" />
+          </div>
+          
+          {/* Handle Name */}
+          <h2 className="text-2xl font-bold text-white font-mono tracking-wider mb-2">
+            @{userData?.username || 'GUEST'}
+          </h2>
+          
+          {/* Join Date */}
+          <div className="flex items-center justify-center space-x-2 text-gray-400 text-sm mb-4">
+            <Calendar className="w-4 h-4" />
+            <span>Joined {userData?.registrationDate ? formatJoinDate(userData.registrationDate) : 'Recently'}</span>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="text-center p-3 bg-gray-800 rounded-xl border border-gray-700">
+              <p className="text-xl font-bold text-white">{userPosts.length}</p>
+              <p className="text-xs text-gray-400">Posts</p>
+            </div>
+            <div className="text-center p-3 bg-gray-800 rounded-xl border border-gray-700">
+              <p className="text-xl font-bold text-white">
+                {userPosts.reduce((sum, post) => sum + post.likes, 0)}
               </p>
+              <p className="text-xs text-gray-400">Likes</p>
             </div>
-
-            <div className="grid grid-cols-1 gap-4">
-              {userPosts.map((post) => (
-                <PostCard
-                  key={post.id}
-                  post={post}
-                  onDelete={handleDeleteClick}
-                />
-              ))}
-            </div>
-
-            <div className="mt-8 p-4 bg-gray-800 rounded-xl border border-gray-700">
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-white mb-2">Post Statistics</h3>
-                <div className="grid grid-cols-2 gap-4 mt-4">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-white">
-                      {userPosts.reduce((sum, post) => sum + post.likes, 0)}
-                    </p>
-                    <p className="text-sm text-gray-400">Total Likes</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-white">
-                      {userPosts.reduce((sum, post) => sum + post.comments, 0)}
-                    </p>
-                    <p className="text-sm text-gray-400">Total Comments</p>
-                  </div>
-                </div>
-              </div>
+            <div className="text-center p-3 bg-gray-800 rounded-xl border border-gray-700">
+              <p className="text-xl font-bold text-white">{mockReplies.length}</p>
+              <p className="text-xs text-gray-400">Replies</p>
             </div>
           </div>
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-center py-16">
-            <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center mb-4">
-              <MessageCircle className="w-10 h-10 text-gray-600" />
-            </div>
-            <h2 className="text-xl font-semibold text-white mb-2">No Posts Yet</h2>
-            <p className="text-gray-400 mb-6 max-w-sm">
-              You haven't shared any thoughts yet. Start creating posts to see them here!
-            </p>
-            <button
-              onClick={onBack}
-              className="px-6 py-3 bg-gradient-to-r from-white to-gray-200 text-gray-800 font-medium rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-200"
-            >
-              Create Your First Post
-            </button>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex space-x-1 bg-gray-800 rounded-xl p-1 mb-6">
+          <button
+            onClick={() => setActiveTab('posts')}
+            className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-lg text-sm font-medium transition-all ${
+              activeTab === 'posts'
+                ? 'bg-white text-gray-800'
+                : 'text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            <Hash className="w-4 h-4" />
+            <span>Recent Posts</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('replies')}
+            className={`flex-1 flex items-center justify-center space-x-2 py-3 px-4 rounded-lg text-sm font-medium transition-all ${
+              activeTab === 'replies'
+                ? 'bg-white text-gray-800'
+                : 'text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            <Reply className="w-4 h-4" />
+            <span>Replies</span>
+          </button>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === 'posts' && (
+          <div>
+            {userPosts.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4">
+                {userPosts.map((post) => (
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    onDelete={handleDeleteClick}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Hash className="w-8 h-8 text-gray-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">No Posts Yet</h3>
+                <p className="text-gray-400 text-sm mb-6">
+                  You haven't shared any thoughts yet. Start creating posts to see them here!
+                </p>
+                <button
+                  onClick={onBack}
+                  className="px-6 py-3 bg-gradient-to-r from-white to-gray-200 text-gray-800 font-medium rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                >
+                  Create Your First Post
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'replies' && (
+          <div>
+            {mockReplies.length > 0 ? (
+              <div className="space-y-4">
+                {mockReplies.map((reply) => (
+                  <ReplyCard key={reply.id} reply={reply} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Reply className="w-8 h-8 text-gray-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-white mb-2">No Replies Yet</h3>
+                <p className="text-gray-400 text-sm mb-6">
+                  You haven't replied to any posts yet. Start engaging with the community!
+                </p>
+                <button
+                  onClick={onBack}
+                  className="px-6 py-3 bg-gradient-to-r from-white to-gray-200 text-gray-800 font-medium rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                >
+                  Explore Posts
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
