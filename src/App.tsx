@@ -7,6 +7,7 @@ import { PopularPage } from './components/PopularPage';
 import { NearbyPage } from './components/NearbyPage';
 import { MyPostsPage } from './components/MyPostsPage';
 import { MessagesPage } from './components/MessagesPage';
+import { SearchPage } from './components/SearchPage';
 import { Plus, Home, Users, MapPin, Flame, MessageCircle, User, Settings, Search, Heart, Type, MoreVertical, Edit3 } from 'lucide-react';
 
 interface UserData {
@@ -185,20 +186,15 @@ const MainFeed = ({
   userData: UserData | null;
   unreadMessageCount: number;
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
   const [feedFilter, setFeedFilter] = useState<'all' | 'popular' | 'nearby'>('all');
 
   const filteredPosts = posts.filter(post => {
-    const matchesSearch = post.text.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    let matchesFilter = true;
     if (feedFilter === 'popular') {
-      matchesFilter = post.category === 'popular';
+      return post.category === 'popular';
     } else if (feedFilter === 'nearby') {
-      matchesFilter = post.category === 'nearby';
+      return post.category === 'nearby';
     }
-    
-    return matchesSearch && matchesFilter;
+    return true; // 'all' shows everything
   });
 
   return (
@@ -236,18 +232,6 @@ const MainFeed = ({
               )}
             </button>
           </div>
-        </div>
-
-        {/* Search */}
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
-          <input
-            type="text"
-            placeholder="Search posts..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent bg-gray-800 text-white placeholder-gray-400"
-          />
         </div>
 
         {/* Feed Filter Tabs */}
@@ -299,11 +283,11 @@ const MainFeed = ({
         ) : (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="w-8 h-8 text-gray-600" />
+              <Home className="w-8 h-8 text-gray-600" />
             </div>
             <h3 className="text-lg font-semibold text-white mb-2">No Posts Found</h3>
             <p className="text-gray-400 text-sm mb-6">
-              {searchQuery ? 'Try adjusting your search terms' : `No ${feedFilter === 'all' ? '' : feedFilter + ' '}posts available`}
+              No {feedFilter === 'all' ? '' : feedFilter + ' '}posts available
             </p>
             <button
               onClick={onCreatePost}
@@ -329,14 +313,17 @@ const MainFeed = ({
 const BottomNavigation = ({ 
   activeTab, 
   onTabChange,
-  onProfileClick
+  onProfileClick,
+  onSearchClick
 }: { 
   activeTab: string; 
   onTabChange: (tab: string) => void;
   onProfileClick: () => void;
+  onSearchClick: () => void;
 }) => {
   const tabs = [
     { key: 'home', icon: Home, label: 'Home' },
+    { key: 'search', icon: Search, label: 'Search', isSearch: true },
     { key: 'groups', icon: Users, label: 'Groups' },
     { key: 'profile', icon: User, label: 'Profile', isProfile: true }
   ];
@@ -354,6 +341,8 @@ const BottomNavigation = ({
               onClick={() => {
                 if (tab.isProfile) {
                   onProfileClick();
+                } else if (tab.isSearch) {
+                  onSearchClick();
                 } else {
                   onTabChange(tab.key);
                 }
@@ -386,7 +375,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [activeTab, setActiveTab] = useState('home');
-  const [currentPage, setCurrentPage] = useState<'main' | 'groups' | 'messages' | 'profile'>('main');
+  const [currentPage, setCurrentPage] = useState<'main' | 'groups' | 'messages' | 'profile' | 'search'>('main');
   const [posts, setPosts] = useState<Post[]>(mockPosts);
   const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
   const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
@@ -455,8 +444,31 @@ function App() {
     setActiveTab('profile');
   };
 
+  const handleSearchClick = () => {
+    setCurrentPage('search');
+    setActiveTab('search');
+  };
+
   if (!isAuthenticated) {
     return <AuthPages onLogin={handleLogin} />;
+  }
+
+  if (currentPage === 'search') {
+    return (
+      <>
+        <SearchPage
+          onBack={handleBackToMain}
+          posts={posts}
+          userData={userData}
+        />
+        <BottomNavigation 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange}
+          onProfileClick={handleProfileClick}
+          onSearchClick={handleSearchClick}
+        />
+      </>
+    );
   }
 
   if (currentPage === 'groups') {
@@ -472,6 +484,7 @@ function App() {
           activeTab={activeTab} 
           onTabChange={handleTabChange}
           onProfileClick={handleProfileClick}
+          onSearchClick={handleSearchClick}
         />
         <CreateGroupModal
           isOpen={isCreateGroupModalOpen}
@@ -494,6 +507,7 @@ function App() {
           activeTab={activeTab} 
           onTabChange={handleTabChange}
           onProfileClick={handleProfileClick}
+          onSearchClick={handleSearchClick}
         />
       </>
     );
@@ -512,6 +526,7 @@ function App() {
           activeTab={activeTab} 
           onTabChange={handleTabChange}
           onProfileClick={handleProfileClick}
+          onSearchClick={handleSearchClick}
         />
       </>
     );
@@ -531,6 +546,7 @@ function App() {
         activeTab={activeTab} 
         onTabChange={handleTabChange}
         onProfileClick={handleProfileClick}
+        onSearchClick={handleSearchClick}
       />
       <CreatePostModal
         isOpen={isCreatePostModalOpen}
