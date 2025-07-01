@@ -9,7 +9,7 @@ import { MyPostsPage } from './components/MyPostsPage';
 import { MessagesPage } from './components/MessagesPage';
 import { SearchPage } from './components/SearchPage';
 import { NotificationModal } from './components/NotificationModal';
-import { Plus, Home, Users, MapPin, Flame, MessageCircle, User, Settings, Search, ChevronUp, ChevronDown, Type, MoreVertical, Edit3, Bell, UserCircle, Hash, Heart } from 'lucide-react';
+import { Plus, Home, Users, MapPin, Flame, MessageCircle, User, Settings, Search, ChevronUp, ChevronDown, Type, MoreVertical, Edit3, Bell, UserCircle, Hash, Heart, Share2, Copy, Check, X } from 'lucide-react';
 
 interface UserData {
   username: string;
@@ -87,6 +87,16 @@ const StatusBar = () => (
   </div>
 );
 
+// Generate random username function
+const generateRandomUsername = (): string => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  for (let i = 0; i < 8; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+};
+
 const mockPosts: Post[] = [
   {
     id: 1,
@@ -101,7 +111,7 @@ const mockPosts: Post[] = [
     views: 15420,
     topComment: "Absolutely! Your wedding, your rules. Friendship matters more than gender roles.",
     authorType: 'anonymous',
-    authorName: 'WEDDING_PLANNER'
+    authorName: generateRandomUsername()
   },
   {
     id: 2,
@@ -115,7 +125,7 @@ const mockPosts: Post[] = [
     tags: ['gaming', 'health', 'nostalgia'],
     views: 8934,
     authorType: 'anonymous',
-    authorName: 'GAMER_LIFE'
+    authorName: generateRandomUsername()
   },
   {
     id: 3,
@@ -144,7 +154,7 @@ const mockPosts: Post[] = [
     tags: ['coffee', 'productivity', 'startup'],
     views: 4532,
     authorType: 'anonymous',
-    authorName: 'ENTREPRENEUR'
+    authorName: generateRandomUsername()
   },
   {
     id: 5,
@@ -159,7 +169,7 @@ const mockPosts: Post[] = [
     views: 7823,
     topComment: "Beautiful! Sometimes the best moments are the quiet ones.",
     authorType: 'anonymous',
-    authorName: 'SUNSET_LOVER'
+    authorName: generateRandomUsername()
   },
   {
     id: 6,
@@ -174,7 +184,7 @@ const mockPosts: Post[] = [
     views: 12456,
     topComment: "This is why I love humanity. Small acts, big impact! 💙",
     authorType: 'anonymous',
-    authorName: 'KIND_SOUL'
+    authorName: generateRandomUsername()
   },
   {
     id: 7,
@@ -189,7 +199,7 @@ const mockPosts: Post[] = [
     views: 18923,
     topComment: "You're not alone. Thank you for sharing - it helps others feel less isolated too.",
     authorType: 'anonymous',
-    authorName: 'BRAVE_SOUL'
+    authorName: generateRandomUsername()
   },
   {
     id: 8,
@@ -203,7 +213,7 @@ const mockPosts: Post[] = [
     tags: ['studying', 'food', 'latenight'],
     views: 1234,
     authorType: 'anonymous',
-    authorName: 'NIGHT_OWL'
+    authorName: generateRandomUsername()
   }
 ];
 
@@ -213,30 +223,30 @@ const mockNotifications: Notification[] = [
     id: '1',
     type: 'like',
     title: 'New Upvote',
-    message: 'ALEX9876 upvoted your post about coffee shop vibes',
+    message: `${generateRandomUsername()} upvoted your post about coffee shop vibes`,
     timestamp: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
     isRead: false,
-    username: 'ALEX9876',
+    username: generateRandomUsername(),
     postId: '4'
   },
   {
     id: '2',
     type: 'comment',
     title: 'New Comment',
-    message: 'SARAH123 commented on your post: "I totally agree! That place has amazing energy"',
+    message: `${generateRandomUsername()} commented on your post: "I totally agree! That place has amazing energy"`,
     timestamp: new Date(Date.now() - 45 * 60 * 1000), // 45 minutes ago
     isRead: false,
-    username: 'SARAH123',
+    username: generateRandomUsername(),
     postId: '4'
   },
   {
     id: '3',
     type: 'follow',
     title: 'New Follower',
-    message: 'MIKE4567 started following you',
+    message: `${generateRandomUsername()} started following you`,
     timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
     isRead: false,
-    username: 'MIKE4567'
+    username: generateRandomUsername()
   },
   {
     id: '4',
@@ -251,37 +261,202 @@ const mockNotifications: Notification[] = [
     id: '5',
     type: 'like',
     title: 'New Upvote',
-    message: 'EMMA8901 upvoted your post about sunset views',
+    message: `${generateRandomUsername()} upvoted your post about sunset views`,
     timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
     isRead: true,
-    username: 'EMMA8901',
+    username: generateRandomUsername(),
     postId: '5'
   },
   {
     id: '6',
     type: 'mention',
     title: 'You were mentioned',
-    message: 'JOHN2345 mentioned you in a comment',
+    message: `${generateRandomUsername()} mentioned you in a comment`,
     timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12 hours ago
     isRead: true,
-    username: 'JOHN2345'
+    username: generateRandomUsername()
   },
   {
     id: '7',
     type: 'comment',
     title: 'New Comment',
-    message: 'LISA6789 commented on your post: "This is so inspiring! Thank you for sharing"',
+    message: `${generateRandomUsername()} commented on your post: "This is so inspiring! Thank you for sharing"`,
     timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
     isRead: true,
-    username: 'LISA6789',
+    username: generateRandomUsername(),
     postId: '6'
   }
 ];
 
-const PostCard = ({ post, onVote, onTagClick }: { 
+// Share Modal Component
+const ShareModal = ({ 
+  isOpen, 
+  onClose, 
+  post 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  post: Post | null;
+}) => {
+  const [copied, setCopied] = useState(false);
+  const [shareMethod, setShareMethod] = useState<'link' | 'text'>('link');
+
+  if (!isOpen || !post) return null;
+
+  const shareUrl = `https://postsy.app/post/${post.id}`;
+  const shareText = `Check out this anonymous post: "${post.text.substring(0, 100)}${post.text.length > 100 ? '...' : ''}"`;
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy link');
+    }
+  };
+
+  const handleCopyText = async () => {
+    try {
+      await navigator.clipboard.writeText(`${shareText}\n\n${shareUrl}`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text');
+    }
+  };
+
+  const handleNativeShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Anonymous Post from Postsy',
+          text: shareText,
+          url: shareUrl,
+        });
+      } catch (err) {
+        console.error('Error sharing:', err);
+      }
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+      <div className="bg-gray-900 w-full max-w-sm rounded-2xl shadow-2xl border border-gray-700">
+        <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+              <Share2 className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-white">Share Post</h3>
+              <p className="text-sm text-gray-400">Spread the word anonymously</p>
+            </div>
+          </div>
+          <button 
+            onClick={onClose}
+            className="p-2 hover:bg-gray-800 rounded-full transition-colors"
+          >
+            <X className="w-5 h-5 text-gray-400" />
+          </button>
+        </div>
+
+        <div className="p-4">
+          {/* Post Preview */}
+          <div className="mb-4 p-3 bg-gray-800 rounded-lg border border-gray-700">
+            <div className="flex items-center space-x-2 mb-2">
+              <span className="text-sm">👤</span>
+              <span className="text-sm font-medium text-gray-400 font-mono">
+                @{post.authorType === 'you' ? 'You' : post.authorName}
+              </span>
+            </div>
+            <p className="text-sm text-gray-300 line-clamp-3">
+              {post.text}
+            </p>
+            <div className="flex items-center space-x-3 mt-2 text-xs text-gray-500">
+              <span>{post.upvotes - post.downvotes} votes</span>
+              <span>{post.comments} comments</span>
+              <span>{post.timeAgo}</span>
+            </div>
+          </div>
+
+          {/* Share Options */}
+          <div className="space-y-3">
+            {/* Native Share (if supported) */}
+            {navigator.share && (
+              <button
+                onClick={handleNativeShare}
+                className="w-full flex items-center space-x-3 p-3 bg-gray-800 hover:bg-gray-700 rounded-xl transition-colors"
+              >
+                <Share2 className="w-5 h-5 text-blue-400" />
+                <div className="text-left">
+                  <p className="text-sm font-medium text-white">Share via...</p>
+                  <p className="text-xs text-gray-400">Use your device's share menu</p>
+                </div>
+              </button>
+            )}
+
+            {/* Copy Link */}
+            <button
+              onClick={handleCopyLink}
+              className="w-full flex items-center justify-between p-3 bg-gray-800 hover:bg-gray-700 rounded-xl transition-colors"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="w-5 h-5 flex items-center justify-center">
+                  {copied && shareMethod === 'link' ? 
+                    <Check className="w-5 h-5 text-green-400" /> : 
+                    <Copy className="w-5 h-5 text-gray-400" />
+                  }
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-medium text-white">Copy Link</p>
+                  <p className="text-xs text-gray-400">Share the direct link to this post</p>
+                </div>
+              </div>
+              {copied && shareMethod === 'link' && (
+                <span className="text-xs text-green-400 font-medium">Copied!</span>
+              )}
+            </button>
+
+            {/* Copy Text */}
+            <button
+              onClick={handleCopyText}
+              className="w-full flex items-center justify-between p-3 bg-gray-800 hover:bg-gray-700 rounded-xl transition-colors"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="w-5 h-5 flex items-center justify-center">
+                  {copied && shareMethod === 'text' ? 
+                    <Check className="w-5 h-5 text-green-400" /> : 
+                    <Type className="w-5 h-5 text-gray-400" />
+                  }
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-medium text-white">Copy Text</p>
+                  <p className="text-xs text-gray-400">Copy post text with link</p>
+                </div>
+              </div>
+              {copied && shareMethod === 'text' && (
+                <span className="text-xs text-green-400 font-medium">Copied!</span>
+              )}
+            </button>
+          </div>
+
+          {/* Share URL Preview */}
+          <div className="mt-4 p-3 bg-gray-800 rounded-lg border border-gray-700">
+            <p className="text-xs text-gray-400 mb-1">Share URL:</p>
+            <p className="text-xs text-gray-300 font-mono break-all">{shareUrl}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const PostCard = ({ post, onVote, onTagClick, onShare }: { 
   post: Post; 
   onVote: (postId: number, voteType: 'up' | 'down') => void;
   onTagClick?: (tag: string) => void;
+  onShare: (post: Post) => void;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [voteAnimation, setVoteAnimation] = useState<'up' | 'down' | null>(null);
@@ -302,7 +477,7 @@ const PostCard = ({ post, onVote, onTagClick }: {
     } else if (post.authorType === 'op') {
       return { icon: '⭐', label: 'OP', color: 'text-yellow-400' };
     } else {
-      return { icon: '👤', label: post.authorName || 'Anonymous', color: 'text-gray-400' };
+      return { icon: '👤', label: post.authorName || generateRandomUsername(), color: 'text-gray-400' };
     }
   };
 
@@ -334,8 +509,8 @@ const PostCard = ({ post, onVote, onTagClick }: {
               {/* Author Identity */}
               <div className="flex items-center space-x-2">
                 <span className="text-sm">{authorInfo.icon}</span>
-                <span className={`text-sm font-medium ${authorInfo.color}`}>
-                  {authorInfo.label}
+                <span className={`text-sm font-medium ${authorInfo.color} font-mono`}>
+                  @{authorInfo.label}
                 </span>
               </div>
               
@@ -412,6 +587,13 @@ const PostCard = ({ post, onVote, onTagClick }: {
                   <MessageCircle className="w-5 h-5 group-hover/comment:scale-110 transition-transform" />
                   <span className="text-sm font-medium">{post.comments}</span>
                 </button>
+                <button 
+                  onClick={() => onShare(post)}
+                  className="flex items-center space-x-2 text-gray-400 hover:text-green-400 transition-colors group/share"
+                >
+                  <Share2 className="w-5 h-5 group-hover/share:scale-110 transition-transform" />
+                  <span className="text-sm font-medium">Share</span>
+                </button>
               </div>
             </div>
           </div>
@@ -477,7 +659,8 @@ const MainFeed = ({
   unreadMessageCount,
   unreadNotificationCount,
   onVote,
-  onTagClick
+  onTagClick,
+  onShare
 }: { 
   activeTab: string;
   posts: Post[];
@@ -488,6 +671,7 @@ const MainFeed = ({
   unreadNotificationCount: number;
   onVote: (postId: number, voteType: 'up' | 'down') => void;
   onTagClick: (tag: string) => void;
+  onShare: (post: Post) => void;
 }) => {
   const [feedFilter, setFeedFilter] = useState<'nearby' | 'popular' | 'all'>('nearby');
 
@@ -601,6 +785,7 @@ const MainFeed = ({
                 post={post} 
                 onVote={onVote}
                 onTagClick={onTagClick}
+                onShare={onShare}
               />
             ))}
           </div>
@@ -638,7 +823,7 @@ const BottomNavigation = ({
     { key: 'search', icon: Search, label: 'Search', isSearch: true },
     { key: 'create', icon: Plus, label: 'Create', isCreate: true },
     { key: 'groups', icon: Users, label: 'Groups' },
-    { key: 'profile', icon: UserCircle, label: 'Profile', isProfile: true }
+    { key: 'profile', icon: User, label: 'Profile', isProfile: true }
   ];
 
   return (
@@ -697,6 +882,8 @@ function App() {
   const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
   const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [postToShare, setPostToShare] = useState<Post | null>(null);
   const [unreadMessageCount, setUnreadMessageCount] = useState(3); // Mock unread count
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
 
@@ -751,6 +938,11 @@ function App() {
   const handleTagClick = (tag: string) => {
     // In a real app, this would filter posts by tag or navigate to tag page
     console.log('Tag clicked:', tag);
+  };
+
+  const handleShare = (post: Post) => {
+    setPostToShare(post);
+    setIsShareModalOpen(true);
   };
 
   const handleCreatePost = (newPost: {
@@ -945,6 +1137,7 @@ function App() {
         unreadNotificationCount={unreadNotificationCount}
         onVote={handleVote}
         onTagClick={handleTagClick}
+        onShare={handleShare}
       />
       <BottomNavigation 
         activeTab={activeTab} 
@@ -966,6 +1159,11 @@ function App() {
         onMarkAsRead={handleMarkNotificationAsRead}
         onMarkAllAsRead={handleMarkAllNotificationsAsRead}
         onDeleteNotification={handleDeleteNotification}
+      />
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        post={postToShare}
       />
     </>
   );
