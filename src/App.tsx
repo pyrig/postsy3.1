@@ -599,8 +599,8 @@ const PostCard = ({ post, onVote, onTagClick, onShare }: {
           </div>
         </div>
 
-        {/* Voting Section */}
-        <div className="flex flex-col items-center space-y-2 min-w-[60px]">
+        {/* Voting Section - Centered Vertically */}
+        <div className="flex flex-col justify-center items-center space-y-3 min-w-[60px]">
           <button
             onClick={() => handleVote('up')}
             className={`p-2 rounded-full transition-all duration-200 hover:scale-110 relative ${
