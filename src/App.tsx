@@ -6,7 +6,8 @@ import { GroupsPage } from './components/GroupsPage';
 import { PopularPage } from './components/PopularPage';
 import { NearbyPage } from './components/NearbyPage';
 import { MyPostsPage } from './components/MyPostsPage';
-import { Plus, Home, Users, MapPin, Flame, Hash, User, Settings, Search, Heart, MessageCircle, Type, MoreVertical } from 'lucide-react';
+import { MessagesPage } from './components/MessagesPage';
+import { Plus, Home, Users, MapPin, Flame, MessageCircle, User, Settings, Search, Heart, Type, MoreVertical } from 'lucide-react';
 
 interface UserData {
   username: string;
@@ -196,7 +197,7 @@ const MainFeed = ({
       case 'popular': return 'Popular';
       case 'groups': return 'Groups';
       case 'nearby': return 'Nearby';
-      case 'latest': return 'Latest';
+      case 'messages': return 'Messages';
       default: return 'Home';
     }
   };
@@ -280,17 +281,19 @@ const MainFeed = ({
 
 const BottomNavigation = ({ 
   activeTab, 
-  onTabChange 
+  onTabChange,
+  unreadMessageCount = 0
 }: { 
   activeTab: string; 
   onTabChange: (tab: string) => void;
+  unreadMessageCount?: number;
 }) => {
   const tabs = [
     { key: 'home', icon: Home, label: 'Home' },
     { key: 'popular', icon: Flame, label: 'Popular' },
     { key: 'groups', icon: Users, label: 'Groups' },
     { key: 'nearby', icon: MapPin, label: 'Nearby' },
-    { key: 'latest', icon: Hash, label: 'Latest' }
+    { key: 'messages', icon: MessageCircle, label: 'Messages', badge: unreadMessageCount }
   ];
 
   return (
@@ -304,13 +307,22 @@ const BottomNavigation = ({
             <button
               key={tab.key}
               onClick={() => onTabChange(tab.key)}
-              className={`flex flex-col items-center space-y-1 py-2 px-3 rounded-lg transition-all duration-200 ${
+              className={`relative flex flex-col items-center space-y-1 py-2 px-3 rounded-lg transition-all duration-200 ${
                 isActive 
                   ? 'text-white bg-white/10' 
                   : 'text-gray-500 hover:text-gray-300'
               }`}
             >
-              <Icon className={`w-5 h-5 ${isActive ? 'text-white' : ''}`} />
+              <div className="relative">
+                <Icon className={`w-5 h-5 ${isActive ? 'text-white' : ''}`} />
+                {tab.badge && tab.badge > 0 && (
+                  <div className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-bold text-white">
+                      {tab.badge > 9 ? '9+' : tab.badge}
+                    </span>
+                  </div>
+                )}
+              </div>
               <span className="text-xs font-medium">{tab.label}</span>
             </button>
           );
@@ -324,10 +336,11 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [activeTab, setActiveTab] = useState('home');
-  const [currentPage, setCurrentPage] = useState<'main' | 'groups' | 'popular' | 'nearby' | 'profile'>('main');
+  const [currentPage, setCurrentPage] = useState<'main' | 'groups' | 'popular' | 'nearby' | 'messages' | 'profile'>('main');
   const [posts, setPosts] = useState<Post[]>(mockPosts);
   const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
   const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
+  const [unreadMessageCount, setUnreadMessageCount] = useState(3); // Mock unread count
 
   const handleLogin = (user?: UserData) => {
     setIsAuthenticated(true);
@@ -376,6 +389,9 @@ function App() {
       setCurrentPage('popular');
     } else if (tab === 'nearby') {
       setCurrentPage('nearby');
+    } else if (tab === 'messages') {
+      setCurrentPage('messages');
+      setUnreadMessageCount(0); // Clear unread count when viewing messages
     } else {
       setCurrentPage('main');
     }
@@ -399,7 +415,11 @@ function App() {
           onFollowGroup={handleFollowGroup}
           onCreateGroup={() => setIsCreateGroupModalOpen(true)}
         />
-        <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+        <BottomNavigation 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange}
+          unreadMessageCount={unreadMessageCount}
+        />
         <CreateGroupModal
           isOpen={isCreateGroupModalOpen}
           onClose={() => setIsCreateGroupModalOpen(false)}
@@ -417,7 +437,11 @@ function App() {
           onBack={handleBackToMain}
           posts={posts}
         />
-        <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+        <BottomNavigation 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange}
+          unreadMessageCount={unreadMessageCount}
+        />
       </>
     );
   }
@@ -429,7 +453,27 @@ function App() {
           onBack={handleBackToMain}
           posts={posts}
         />
-        <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+        <BottomNavigation 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange}
+          unreadMessageCount={unreadMessageCount}
+        />
+      </>
+    );
+  }
+
+  if (currentPage === 'messages') {
+    return (
+      <>
+        <MessagesPage
+          onBack={handleBackToMain}
+          userData={userData}
+        />
+        <BottomNavigation 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange}
+          unreadMessageCount={unreadMessageCount}
+        />
       </>
     );
   }
@@ -443,7 +487,11 @@ function App() {
           posts={posts}
           onDeletePost={handleDeletePost}
         />
-        <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+        <BottomNavigation 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange}
+          unreadMessageCount={unreadMessageCount}
+        />
       </>
     );
   }
@@ -457,7 +505,11 @@ function App() {
         onProfileClick={() => setCurrentPage('profile')}
         userData={userData}
       />
-      <BottomNavigation activeTab={activeTab} onTabChange={handleTabChange} />
+      <BottomNavigation 
+        activeTab={activeTab} 
+        onTabChange={handleTabChange}
+        unreadMessageCount={unreadMessageCount}
+      />
       <CreatePostModal
         isOpen={isCreatePostModalOpen}
         onClose={() => setIsCreatePostModalOpen(false)}
