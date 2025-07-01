@@ -7,7 +7,7 @@ import { PopularPage } from './components/PopularPage';
 import { NearbyPage } from './components/NearbyPage';
 import { MyPostsPage } from './components/MyPostsPage';
 import { MessagesPage } from './components/MessagesPage';
-import { Plus, Home, Users, MapPin, Flame, MessageCircle, User, Settings, Search, Heart, Type, MoreVertical } from 'lucide-react';
+import { Plus, Home, Users, MapPin, Flame, MessageCircle, User, Settings, Search, Heart, Type, MoreVertical, Edit3 } from 'lucide-react';
 
 interface UserData {
   username: string;
@@ -191,17 +191,6 @@ const MainFeed = ({
     return matchesSearch && matchesTab;
   });
 
-  const getTabTitle = () => {
-    switch (activeTab) {
-      case 'home': return 'Home';
-      case 'popular': return 'Popular';
-      case 'groups': return 'Groups';
-      case 'nearby': return 'Nearby';
-      case 'messages': return 'Messages';
-      default: return 'Home';
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col max-w-md mx-auto shadow-2xl">
       <StatusBar />
@@ -215,17 +204,21 @@ const MainFeed = ({
               alt="Postsy Logo" 
               className="h-8 w-auto"
             />
-            <div>
-              <h1 className="text-lg font-semibold text-white">{getTabTitle()}</h1>
-              <p className="text-sm text-gray-400">@{userData?.username || 'GUEST'}</p>
-            </div>
           </div>
-          <button
-            onClick={onProfileClick}
-            className="w-10 h-10 bg-gradient-to-br from-white to-gray-300 rounded-full flex items-center justify-center hover:shadow-lg transform hover:scale-105 transition-all duration-200"
-          >
-            <Type className="w-5 h-5 text-gray-800" />
-          </button>
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={onCreatePost}
+              className="p-2 hover:bg-gray-800 rounded-full transition-colors"
+            >
+              <Edit3 className="w-6 h-6 text-white" />
+            </button>
+            <button
+              onClick={onProfileClick}
+              className="w-10 h-10 bg-gradient-to-br from-white to-gray-300 rounded-full flex items-center justify-center hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+            >
+              <Type className="w-5 h-5 text-gray-800" />
+            </button>
+          </div>
         </div>
 
         {/* Search */}
