@@ -174,7 +174,6 @@ const MainFeed = ({
   activeTab, 
   posts, 
   onCreatePost,
-  onProfileClick,
   onMessagesClick,
   userData,
   unreadMessageCount 
@@ -182,7 +181,6 @@ const MainFeed = ({
   activeTab: string;
   posts: Post[];
   onCreatePost: () => void;
-  onProfileClick: () => void;
   onMessagesClick: () => void;
   userData: UserData | null;
   unreadMessageCount: number;
@@ -228,12 +226,6 @@ const MainFeed = ({
               className="p-2 hover:bg-gray-800 rounded-full transition-colors"
             >
               <Edit3 className="w-6 h-6 text-white" />
-            </button>
-            <button
-              onClick={onProfileClick}
-              className="w-10 h-10 bg-gradient-to-br from-white to-gray-300 rounded-full flex items-center justify-center hover:shadow-lg transform hover:scale-105 transition-all duration-200"
-            >
-              <Type className="w-5 h-5 text-gray-800" />
             </button>
           </div>
         </div>
@@ -291,16 +283,19 @@ const MainFeed = ({
 
 const BottomNavigation = ({ 
   activeTab, 
-  onTabChange
+  onTabChange,
+  onProfileClick
 }: { 
   activeTab: string; 
   onTabChange: (tab: string) => void;
+  onProfileClick: () => void;
 }) => {
   const tabs = [
     { key: 'home', icon: Home, label: 'Home' },
     { key: 'popular', icon: Flame, label: 'Popular' },
     { key: 'groups', icon: Users, label: 'Groups' },
-    { key: 'nearby', icon: MapPin, label: 'Nearby' }
+    { key: 'nearby', icon: MapPin, label: 'Nearby' },
+    { key: 'profile', icon: User, label: 'Profile', isProfile: true }
   ];
 
   return (
@@ -313,14 +308,28 @@ const BottomNavigation = ({
           return (
             <button
               key={tab.key}
-              onClick={() => onTabChange(tab.key)}
+              onClick={() => {
+                if (tab.isProfile) {
+                  onProfileClick();
+                } else {
+                  onTabChange(tab.key);
+                }
+              }}
               className={`relative flex flex-col items-center space-y-1 py-2 px-3 rounded-lg transition-all duration-200 ${
                 isActive 
                   ? 'text-white bg-white/10' 
                   : 'text-gray-500 hover:text-gray-300'
               }`}
             >
-              <Icon className={`w-5 h-5 ${isActive ? 'text-white' : ''}`} />
+              {tab.isProfile ? (
+                <div className={`w-6 h-6 bg-gradient-to-br from-white to-gray-300 rounded-full flex items-center justify-center ${
+                  isActive ? 'ring-2 ring-white ring-offset-2 ring-offset-gray-900' : ''
+                }`}>
+                  <Type className="w-3 h-3 text-gray-800" />
+                </div>
+              ) : (
+                <Icon className={`w-5 h-5 ${isActive ? 'text-white' : ''}`} />
+              )}
               <span className="text-xs font-medium">{tab.label}</span>
             </button>
           );
@@ -402,6 +411,11 @@ function App() {
     setUnreadMessageCount(0); // Clear unread count when viewing messages
   };
 
+  const handleProfileClick = () => {
+    setCurrentPage('profile');
+    setActiveTab('profile');
+  };
+
   if (!isAuthenticated) {
     return <AuthPages onLogin={handleLogin} />;
   }
@@ -418,6 +432,7 @@ function App() {
         <BottomNavigation 
           activeTab={activeTab} 
           onTabChange={handleTabChange}
+          onProfileClick={handleProfileClick}
         />
         <CreateGroupModal
           isOpen={isCreateGroupModalOpen}
@@ -439,6 +454,7 @@ function App() {
         <BottomNavigation 
           activeTab={activeTab} 
           onTabChange={handleTabChange}
+          onProfileClick={handleProfileClick}
         />
       </>
     );
@@ -454,6 +470,7 @@ function App() {
         <BottomNavigation 
           activeTab={activeTab} 
           onTabChange={handleTabChange}
+          onProfileClick={handleProfileClick}
         />
       </>
     );
@@ -469,6 +486,7 @@ function App() {
         <BottomNavigation 
           activeTab={activeTab} 
           onTabChange={handleTabChange}
+          onProfileClick={handleProfileClick}
         />
       </>
     );
@@ -486,6 +504,7 @@ function App() {
         <BottomNavigation 
           activeTab={activeTab} 
           onTabChange={handleTabChange}
+          onProfileClick={handleProfileClick}
         />
       </>
     );
@@ -497,7 +516,6 @@ function App() {
         activeTab={activeTab}
         posts={posts}
         onCreatePost={() => setIsCreatePostModalOpen(true)}
-        onProfileClick={() => setCurrentPage('profile')}
         onMessagesClick={handleMessagesClick}
         userData={userData}
         unreadMessageCount={unreadMessageCount}
@@ -505,6 +523,7 @@ function App() {
       <BottomNavigation 
         activeTab={activeTab} 
         onTabChange={handleTabChange}
+        onProfileClick={handleProfileClick}
       />
       <CreatePostModal
         isOpen={isCreatePostModalOpen}
