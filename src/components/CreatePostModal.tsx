@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Globe, Lock, Send, Loader2, Users, MapPin, Hash, Type } from 'lucide-react';
+import { X, Globe, Lock, Send, Loader2, Users, MapPin, Hash, Type, Plus } from 'lucide-react';
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -8,9 +8,16 @@ interface CreatePostModalProps {
     text: string;
     category: 'groups' | 'popular' | 'nearby' | 'latest';
     privacy: 'public' | 'friends' | 'private';
+    tags?: string[];
   }) => void;
   userData: { username: string } | null;
 }
+
+const predefinedTags = [
+  'mentalhealth', 'relationships', 'college', 'worklife', 'coffee', 'music',
+  'travel', 'food', 'gaming', 'fitness', 'art', 'books', 'movies', 'tech',
+  'nature', 'photography', 'cooking', 'fashion', 'sports', 'pets'
+];
 
 export const CreatePostModal: React.FC<CreatePostModalProps> = ({
   isOpen,
@@ -21,18 +28,33 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
   const [postText, setPostText] = useState('');
   const [category, setCategory] = useState<'groups' | 'popular' | 'nearby' | 'latest'>('popular');
   const [privacy, setPrivacy] = useState<'public' | 'friends' | 'private'>('public');
+  const [tags, setTags] = useState<string[]>([]);
+  const [newTag, setNewTag] = useState('');
   const [isPosting, setIsPosting] = useState(false);
 
   const resetModal = () => {
     setPostText('');
     setCategory('popular');
     setPrivacy('public');
+    setTags([]);
+    setNewTag('');
     setIsPosting(false);
   };
 
   const handleClose = () => {
     resetModal();
     onClose();
+  };
+
+  const handleAddTag = (tag: string) => {
+    if (tag && !tags.includes(tag) && tags.length < 3) {
+      setTags([...tags, tag]);
+      setNewTag('');
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
   const handleCreatePost = async () => {
@@ -44,7 +66,8 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
       onCreatePost({
         text: postText,
         category,
-        privacy
+        privacy,
+        tags
       });
       setIsPosting(false);
       handleClose();
@@ -109,6 +132,78 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
               <p className="text-xs text-gray-400 mt-2 text-right">
                 {postText.length}/500 characters
               </p>
+            </div>
+
+            {/* Tags Section */}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-3">
+                Tags (Optional - up to 3)
+              </label>
+              
+              {/* Selected Tags */}
+              {tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="px-3 py-1 bg-blue-600 text-white text-sm rounded-full flex items-center space-x-1"
+                    >
+                      <Hash className="w-3 h-3" />
+                      <span>{tag}</span>
+                      <button
+                        onClick={() => handleRemoveTag(tag)}
+                        className="hover:text-gray-300 transition-colors"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Add Custom Tag */}
+              {tags.length < 3 && (
+                <div className="flex space-x-2 mb-3">
+                  <input
+                    type="text"
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value.toLowerCase().replace(/\s+/g, ''))}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddTag(newTag)}
+                    placeholder="Add a tag..."
+                    className="flex-1 px-3 py-2 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent transition-all bg-gray-800 text-white placeholder-gray-400"
+                    maxLength={20}
+                  />
+                  <button
+                    onClick={() => handleAddTag(newTag)}
+                    disabled={!newTag.trim() || tags.length >= 3}
+                    className="px-3 py-2 bg-white text-gray-800 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Predefined Tags */}
+              {tags.length < 3 && (
+                <div>
+                  <p className="text-xs text-gray-400 mb-2">Popular tags:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {predefinedTags
+                      .filter(tag => !tags.includes(tag))
+                      .slice(0, 8)
+                      .map((tag) => (
+                        <button
+                          key={tag}
+                          onClick={() => handleAddTag(tag)}
+                          className="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white text-xs rounded-full transition-colors flex items-center space-x-1"
+                        >
+                          <Hash className="w-3 h-3" />
+                          <span>{tag}</span>
+                        </button>
+                      ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Category Selection */}

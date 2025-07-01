@@ -9,7 +9,7 @@ import { MyPostsPage } from './components/MyPostsPage';
 import { MessagesPage } from './components/MessagesPage';
 import { SearchPage } from './components/SearchPage';
 import { NotificationModal } from './components/NotificationModal';
-import { Plus, Home, Users, MapPin, Flame, MessageCircle, User, Settings, Search, ChevronUp, ChevronDown, Type, MoreVertical, Edit3, Bell, UserCircle } from 'lucide-react';
+import { Plus, Home, Users, MapPin, Flame, MessageCircle, User, Settings, Search, ChevronUp, ChevronDown, Type, MoreVertical, Edit3, Bell, UserCircle, Hash, Heart } from 'lucide-react';
 
 interface UserData {
   username: string;
@@ -27,6 +27,11 @@ interface Post {
   groupId?: string;
   groupName?: string;
   userVote?: 'up' | 'down' | null;
+  tags?: string[];
+  views?: number;
+  topComment?: string;
+  authorType?: 'you' | 'op' | 'anonymous';
+  authorName?: string;
 }
 
 interface Group {
@@ -85,84 +90,120 @@ const StatusBar = () => (
 const mockPosts: Post[] = [
   {
     id: 1,
-    text: "Do you think it's okay to have a 'man of honor' instead of 'maid of honor' at your wedding if your best friend for 5 years is a guy?",
+    text: "Do you think it's okay to have a 'man of honor' instead of 'maid of honor' at your wedding if your best friend for 5 years is a guy? I've been thinking about this a lot lately and I'm not sure what the traditional expectations are versus what feels right for me personally. Would love to hear different perspectives on this!",
     upvotes: 3821,
     downvotes: 1000,
     comments: 892,
     timeAgo: "3h",
     category: 'popular',
-    userVote: null
+    userVote: null,
+    tags: ['wedding', 'relationships', 'traditions'],
+    views: 15420,
+    topComment: "Absolutely! Your wedding, your rules. Friendship matters more than gender roles.",
+    authorType: 'anonymous',
+    authorName: 'WEDDING_PLANNER'
   },
   {
     id: 2,
-    text: "When I heard about Pokemon GO, I thought it was just another mobile game. Boy was I wrong! It completely changed how I see my neighborhood and got me walking again.",
+    text: "When I heard about Pokemon GO, I thought it was just another mobile game. Boy was I wrong! It completely changed how I see my neighborhood and got me walking again. Sometimes the simplest ideas have the biggest impact on our daily lives.",
     upvotes: 2956,
     downvotes: 500,
     comments: 567,
     timeAgo: "5h",
     category: 'popular',
-    userVote: null
+    userVote: null,
+    tags: ['gaming', 'health', 'nostalgia'],
+    views: 8934,
+    authorType: 'anonymous',
+    authorName: 'GAMER_LIFE'
   },
   {
     id: 3,
-    text: "My girlfriend bought me cheese for our anniversary 😂 Not just any cheese - she got me a whole selection from this fancy cheese shop. Honestly, it was the most thoughtful gift ever!",
+    text: "My girlfriend bought me cheese for our anniversary 😂 Not just any cheese - she got me a whole selection from this fancy cheese shop. Honestly, it was the most thoughtful gift ever! She knows me so well.",
     upvotes: 2487,
     downvotes: 500,
     comments: 423,
     timeAgo: "8h",
     category: 'popular',
-    userVote: null
+    userVote: null,
+    tags: ['relationships', 'funny', 'food'],
+    views: 6721,
+    topComment: "That's true love right there! 🧀❤️",
+    authorType: 'you'
   },
   {
     id: 4,
-    text: "Coffee shop vibes hit different when you're working on your dreams. There's something about the ambient noise and caffeine that just makes everything click.",
+    text: "Coffee shop vibes hit different when you're working on your dreams. There's something about the ambient noise and caffeine that just makes everything click. Currently working on my startup idea and feeling inspired!",
     upvotes: 1576,
     downvotes: 300,
     comments: 234,
     timeAgo: "2h",
     category: 'groups',
     groupName: 'Coffee Lovers',
-    userVote: null
+    userVote: null,
+    tags: ['coffee', 'productivity', 'startup'],
+    views: 4532,
+    authorType: 'anonymous',
+    authorName: 'ENTREPRENEUR'
   },
   {
     id: 5,
-    text: "The sunset tonight reminded me why I love this place. Sometimes you need to stop and appreciate the simple beauty around you.",
+    text: "The sunset tonight reminded me why I love this place. Sometimes you need to stop and appreciate the simple beauty around you. Taking a moment to be grateful for where life has brought me.",
     upvotes: 2745,
     downvotes: 500,
     comments: 456,
     timeAgo: "1h",
     category: 'nearby',
-    userVote: null
+    userVote: null,
+    tags: ['nature', 'gratitude', 'mindfulness'],
+    views: 7823,
+    topComment: "Beautiful! Sometimes the best moments are the quiet ones.",
+    authorType: 'anonymous',
+    authorName: 'SUNSET_LOVER'
   },
   {
     id: 6,
-    text: "Sometimes the smallest gestures mean the most. A stranger held the door for me today and it completely turned my mood around. Kindness is contagious.",
+    text: "Sometimes the smallest gestures mean the most. A stranger held the door for me today and it completely turned my mood around. Kindness is contagious and we all have the power to make someone's day better.",
     upvotes: 4932,
     downvotes: 500,
     comments: 789,
     timeAgo: "4h",
     category: 'latest',
-    userVote: null
+    userVote: null,
+    tags: ['kindness', 'positivity', 'humanity'],
+    views: 12456,
+    topComment: "This is why I love humanity. Small acts, big impact! 💙",
+    authorType: 'anonymous',
+    authorName: 'KIND_SOUL'
   },
   {
     id: 7,
-    text: "I wish people understood my depression. I can go from happy to sad in a blink of an eye because it all builds up inside. Wish I could handle it better.",
+    text: "I wish people understood my depression. I can go from happy to sad in a blink of an eye because it all builds up inside. Wish I could handle it better. Some days are harder than others, but I'm trying to take it one step at a time.",
     upvotes: 5734,
     downvotes: 500,
     comments: 1456,
     timeAgo: "12h",
     category: 'popular',
-    userVote: null
+    userVote: null,
+    tags: ['mentalhealth', 'depression', 'support'],
+    views: 18923,
+    topComment: "You're not alone. Thank you for sharing - it helps others feel less isolated too.",
+    authorType: 'anonymous',
+    authorName: 'BRAVE_SOUL'
   },
   {
     id: 8,
-    text: "Late night study session at the 24/7 diner. Their pie is keeping me going! 🥧 Sometimes the best productivity happens when the world is quiet.",
+    text: "Late night study session at the 24/7 diner. Their pie is keeping me going! 🥧 Sometimes the best productivity happens when the world is quiet and you can really focus on what matters.",
     upvotes: 467,
     downvotes: 100,
     comments: 89,
     timeAgo: "6h",
     category: 'nearby',
-    userVote: null
+    userVote: null,
+    tags: ['studying', 'food', 'latenight'],
+    views: 1234,
+    authorType: 'anonymous',
+    authorName: 'NIGHT_OWL'
   }
 ];
 
@@ -237,7 +278,14 @@ const mockNotifications: Notification[] = [
   }
 ];
 
-const PostCard = ({ post, onVote }: { post: Post; onVote: (postId: number, voteType: 'up' | 'down') => void }) => {
+const PostCard = ({ post, onVote, onTagClick }: { 
+  post: Post; 
+  onVote: (postId: number, voteType: 'up' | 'down') => void;
+  onTagClick?: (tag: string) => void;
+}) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [voteAnimation, setVoteAnimation] = useState<'up' | 'down' | null>(null);
+
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'popular': return 'text-red-400 bg-red-900/20 border-red-700';
@@ -248,7 +296,32 @@ const PostCard = ({ post, onVote }: { post: Post; onVote: (postId: number, voteT
     }
   };
 
+  const getAuthorInfo = () => {
+    if (post.authorType === 'you') {
+      return { icon: '👤', label: 'You', color: 'text-blue-400' };
+    } else if (post.authorType === 'op') {
+      return { icon: '⭐', label: 'OP', color: 'text-yellow-400' };
+    } else {
+      return { icon: '👤', label: post.authorName || 'Anonymous', color: 'text-gray-400' };
+    }
+  };
+
   const getNetScore = () => post.upvotes - post.downvotes;
+
+  const shouldTruncate = post.text.length > 200;
+  const displayText = shouldTruncate && !isExpanded 
+    ? post.text.substring(0, 200) + '...' 
+    : post.text;
+
+  const handleVote = (voteType: 'up' | 'down') => {
+    setVoteAnimation(voteType);
+    onVote(post.id, voteType);
+    
+    // Clear animation after a short delay
+    setTimeout(() => setVoteAnimation(null), 300);
+  };
+
+  const authorInfo = getAuthorInfo();
 
   return (
     <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-gray-600 transition-all cursor-pointer group">
@@ -258,6 +331,14 @@ const PostCard = ({ post, onVote }: { post: Post; onVote: (postId: number, voteT
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
+              {/* Author Identity */}
+              <div className="flex items-center space-x-2">
+                <span className="text-sm">{authorInfo.icon}</span>
+                <span className={`text-sm font-medium ${authorInfo.color}`}>
+                  {authorInfo.label}
+                </span>
+              </div>
+              
               {post.groupName && (
                 <span className="px-2 py-1 bg-white/10 text-white text-xs font-medium rounded-full border border-white/20">
                   {post.groupName}
@@ -275,37 +356,87 @@ const PostCard = ({ post, onVote }: { post: Post; onVote: (postId: number, voteT
           {/* Content */}
           <div>
             <p className="text-white text-base leading-relaxed">
-              {post.text}
+              {displayText}
             </p>
+            {shouldTruncate && (
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="text-blue-400 hover:text-blue-300 text-sm font-medium mt-2 transition-colors"
+              >
+                {isExpanded ? 'Show less' : 'Read more'}
+              </button>
+            )}
           </div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-between pt-2 border-t border-gray-700">
-            <div className="flex items-center space-x-6">
-              <button className="flex items-center space-x-2 text-gray-400 hover:text-blue-400 transition-colors group/comment">
-                <MessageCircle className="w-5 h-5 group-hover/comment:scale-110 transition-transform" />
-                <span className="text-sm font-medium">{post.comments}</span>
-              </button>
+          {/* Tags */}
+          {post.tags && post.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {post.tags.map((tag) => (
+                <button
+                  key={tag}
+                  onClick={() => onTagClick?.(tag)}
+                  className="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white text-xs rounded-full transition-colors flex items-center space-x-1"
+                >
+                  <Hash className="w-3 h-3" />
+                  <span>{tag}</span>
+                </button>
+              ))}
             </div>
-            <span className="text-sm text-gray-500">{post.timeAgo}</span>
+          )}
+
+          {/* Top Comment Preview */}
+          {post.topComment && (
+            <div className="p-3 bg-gray-700/50 rounded-lg border-l-2 border-blue-400">
+              <div className="flex items-center space-x-2 mb-1">
+                <MessageCircle className="w-3 h-3 text-blue-400" />
+                <span className="text-xs text-blue-400 font-medium">Top comment</span>
+              </div>
+              <p className="text-sm text-gray-300 italic">"{post.topComment}"</p>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="space-y-2">
+            <div className="text-sm text-gray-500">
+              {post.timeAgo}
+              {post.views && (
+                <span className="ml-3">
+                  {post.views.toLocaleString()} views
+                </span>
+              )}
+            </div>
+            
+            <div className="flex items-center justify-between pt-2 border-t border-gray-700">
+              <div className="flex items-center space-x-6">
+                <button className="flex items-center space-x-2 text-gray-400 hover:text-blue-400 transition-colors group/comment">
+                  <MessageCircle className="w-5 h-5 group-hover/comment:scale-110 transition-transform" />
+                  <span className="text-sm font-medium">{post.comments}</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Voting Section */}
         <div className="flex flex-col items-center space-y-2 min-w-[60px]">
           <button
-            onClick={() => onVote(post.id, 'up')}
-            className={`p-2 rounded-full transition-all duration-200 hover:scale-110 ${
+            onClick={() => handleVote('up')}
+            className={`p-2 rounded-full transition-all duration-200 hover:scale-110 relative ${
               post.userVote === 'up'
                 ? 'bg-green-500 text-white shadow-lg'
                 : 'bg-gray-700 text-gray-400 hover:bg-green-500 hover:text-white'
-            }`}
+            } ${voteAnimation === 'up' ? 'animate-pulse bg-green-400' : ''}`}
           >
             <ChevronUp className="w-5 h-5" />
+            {voteAnimation === 'up' && (
+              <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 text-green-400 text-xs font-bold animate-bounce">
+                +1
+              </div>
+            )}
           </button>
           
           <div className="text-center">
-            <div className={`text-lg font-bold ${
+            <div className={`text-lg font-bold transition-colors ${
               getNetScore() > 0 ? 'text-green-400' : 
               getNetScore() < 0 ? 'text-red-400' : 'text-gray-400'
             }`}>
@@ -317,14 +448,19 @@ const PostCard = ({ post, onVote }: { post: Post; onVote: (postId: number, voteT
           </div>
           
           <button
-            onClick={() => onVote(post.id, 'down')}
-            className={`p-2 rounded-full transition-all duration-200 hover:scale-110 ${
+            onClick={() => handleVote('down')}
+            className={`p-2 rounded-full transition-all duration-200 hover:scale-110 relative ${
               post.userVote === 'down'
                 ? 'bg-red-500 text-white shadow-lg'
                 : 'bg-gray-700 text-gray-400 hover:bg-red-500 hover:text-white'
-            }`}
+            } ${voteAnimation === 'down' ? 'animate-pulse bg-red-400' : ''}`}
           >
             <ChevronDown className="w-5 h-5" />
+            {voteAnimation === 'down' && (
+              <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 text-red-400 text-xs font-bold animate-bounce">
+                -1
+              </div>
+            )}
           </button>
         </div>
       </div>
@@ -340,7 +476,8 @@ const MainFeed = ({
   userData,
   unreadMessageCount,
   unreadNotificationCount,
-  onVote
+  onVote,
+  onTagClick
 }: { 
   activeTab: string;
   posts: Post[];
@@ -350,6 +487,7 @@ const MainFeed = ({
   unreadMessageCount: number;
   unreadNotificationCount: number;
   onVote: (postId: number, voteType: 'up' | 'down') => void;
+  onTagClick: (tag: string) => void;
 }) => {
   const [feedFilter, setFeedFilter] = useState<'nearby' | 'popular' | 'all'>('nearby');
 
@@ -406,6 +544,15 @@ const MainFeed = ({
           </div>
         </div>
 
+        {/* Call to Action */}
+        <div className="mb-4 text-center">
+          <p className="text-gray-400 text-sm">
+            {feedFilter === 'nearby' ? 'See what people nearby are thinking' : 
+             feedFilter === 'popular' ? 'Discover what\'s trending right now' :
+             'Share what\'s on your mind anonymously'}
+          </p>
+        </div>
+
         {/* Feed Filter Tabs */}
         <div className="flex space-x-1 bg-gray-800 rounded-xl p-1">
           <button
@@ -449,7 +596,12 @@ const MainFeed = ({
         {filteredPosts.length > 0 ? (
           <div className="space-y-4">
             {filteredPosts.map((post) => (
-              <PostCard key={post.id} post={post} onVote={onVote} />
+              <PostCard 
+                key={post.id} 
+                post={post} 
+                onVote={onVote}
+                onTagClick={onTagClick}
+              />
             ))}
           </div>
         ) : (
@@ -596,10 +748,16 @@ function App() {
     }));
   };
 
+  const handleTagClick = (tag: string) => {
+    // In a real app, this would filter posts by tag or navigate to tag page
+    console.log('Tag clicked:', tag);
+  };
+
   const handleCreatePost = (newPost: {
     text: string;
     category: 'groups' | 'popular' | 'nearby' | 'latest';
     privacy: 'public' | 'friends' | 'private';
+    tags?: string[];
   }) => {
     const post: Post = {
       id: posts.length + 1,
@@ -609,7 +767,10 @@ function App() {
       comments: 0,
       timeAgo: 'now',
       category: newPost.category,
-      userVote: null
+      userVote: null,
+      tags: newPost.tags || [],
+      views: 0,
+      authorType: 'you'
     };
     setPosts([post, ...posts]);
   };
@@ -783,6 +944,7 @@ function App() {
         unreadMessageCount={unreadMessageCount}
         unreadNotificationCount={unreadNotificationCount}
         onVote={handleVote}
+        onTagClick={handleTagClick}
       />
       <BottomNavigation 
         activeTab={activeTab} 
