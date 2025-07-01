@@ -174,14 +174,12 @@ const PostCard = ({ post }: { post: Post }) => (
 const MainFeed = ({ 
   activeTab, 
   posts, 
-  onCreatePost,
   onMessagesClick,
   userData,
   unreadMessageCount 
 }: { 
   activeTab: string;
   posts: Post[];
-  onCreatePost: () => void;
   onMessagesClick: () => void;
   userData: UserData | null;
   unreadMessageCount: number;
@@ -212,12 +210,6 @@ const MainFeed = ({
             />
           </div>
           <div className="flex items-center space-x-3">
-            <button
-              onClick={onCreatePost}
-              className="p-2 hover:bg-gray-800 rounded-full transition-colors"
-            >
-              <Edit3 className="w-6 h-6 text-white" />
-            </button>
             <button
               onClick={onMessagesClick}
               className="relative p-2 hover:bg-gray-800 rounded-full transition-colors"
@@ -289,23 +281,9 @@ const MainFeed = ({
             <p className="text-gray-400 text-sm mb-6">
               No {feedFilter === 'all' ? '' : feedFilter + ' '}posts available
             </p>
-            <button
-              onClick={onCreatePost}
-              className="px-6 py-3 bg-gradient-to-r from-white to-gray-200 text-gray-800 font-medium rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-200"
-            >
-              Create First Post
-            </button>
           </div>
         )}
       </div>
-
-      {/* Create Post FAB */}
-      <button
-        onClick={onCreatePost}
-        className="fixed bottom-20 right-6 w-14 h-14 bg-gradient-to-r from-white to-gray-200 rounded-full shadow-lg hover:shadow-xl transform hover:scale-110 transition-all duration-200 flex items-center justify-center z-30"
-      >
-        <Plus className="w-6 h-6 text-gray-800" />
-      </button>
     </div>
   );
 };
@@ -314,16 +292,19 @@ const BottomNavigation = ({
   activeTab, 
   onTabChange,
   onProfileClick,
-  onSearchClick
+  onSearchClick,
+  onCreatePostClick
 }: { 
   activeTab: string; 
   onTabChange: (tab: string) => void;
   onProfileClick: () => void;
   onSearchClick: () => void;
+  onCreatePostClick: () => void;
 }) => {
   const tabs = [
     { key: 'home', icon: Home, label: 'Home' },
     { key: 'search', icon: Search, label: 'Search', isSearch: true },
+    { key: 'create', icon: Plus, label: 'Create', isCreate: true },
     { key: 'groups', icon: Users, label: 'Groups' },
     { key: 'profile', icon: User, label: 'Profile', isProfile: true }
   ];
@@ -343,6 +324,8 @@ const BottomNavigation = ({
                   onProfileClick();
                 } else if (tab.isSearch) {
                   onSearchClick();
+                } else if (tab.isCreate) {
+                  onCreatePostClick();
                 } else {
                   onTabChange(tab.key);
                 }
@@ -359,10 +342,18 @@ const BottomNavigation = ({
                 }`}>
                   <Type className="w-3 h-3 text-gray-800" />
                 </div>
+              ) : tab.isCreate ? (
+                <div className={`w-8 h-8 bg-gradient-to-r from-white to-gray-200 rounded-full flex items-center justify-center shadow-lg transform transition-all duration-200 ${
+                  isActive ? 'scale-110' : 'hover:scale-105'
+                }`}>
+                  <Icon className="w-5 h-5 text-gray-800" />
+                </div>
               ) : (
                 <Icon className={`w-5 h-5 ${isActive ? 'text-white' : ''}`} />
               )}
-              <span className="text-xs font-medium">{tab.label}</span>
+              <span className={`text-xs font-medium ${tab.isCreate ? 'text-white' : ''}`}>
+                {tab.label}
+              </span>
             </button>
           );
         })}
@@ -449,6 +440,11 @@ function App() {
     setActiveTab('search');
   };
 
+  const handleCreatePostClick = () => {
+    setIsCreatePostModalOpen(true);
+    setActiveTab('create');
+  };
+
   if (!isAuthenticated) {
     return <AuthPages onLogin={handleLogin} />;
   }
@@ -466,6 +462,7 @@ function App() {
           onTabChange={handleTabChange}
           onProfileClick={handleProfileClick}
           onSearchClick={handleSearchClick}
+          onCreatePostClick={handleCreatePostClick}
         />
       </>
     );
@@ -485,6 +482,7 @@ function App() {
           onTabChange={handleTabChange}
           onProfileClick={handleProfileClick}
           onSearchClick={handleSearchClick}
+          onCreatePostClick={handleCreatePostClick}
         />
         <CreateGroupModal
           isOpen={isCreateGroupModalOpen}
@@ -508,6 +506,7 @@ function App() {
           onTabChange={handleTabChange}
           onProfileClick={handleProfileClick}
           onSearchClick={handleSearchClick}
+          onCreatePostClick={handleCreatePostClick}
         />
       </>
     );
@@ -527,6 +526,7 @@ function App() {
           onTabChange={handleTabChange}
           onProfileClick={handleProfileClick}
           onSearchClick={handleSearchClick}
+          onCreatePostClick={handleCreatePostClick}
         />
       </>
     );
@@ -537,7 +537,6 @@ function App() {
       <MainFeed
         activeTab={activeTab}
         posts={posts}
-        onCreatePost={() => setIsCreatePostModalOpen(true)}
         onMessagesClick={handleMessagesClick}
         userData={userData}
         unreadMessageCount={unreadMessageCount}
@@ -547,6 +546,7 @@ function App() {
         onTabChange={handleTabChange}
         onProfileClick={handleProfileClick}
         onSearchClick={handleSearchClick}
+        onCreatePostClick={handleCreatePostClick}
       />
       <CreatePostModal
         isOpen={isCreatePostModalOpen}
