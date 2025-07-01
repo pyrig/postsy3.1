@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Trash2, Heart, MessageCircle, MoreVertical, AlertTriangle, User, Calendar, Hash, Reply } from 'lucide-react';
+import { ArrowLeft, Trash2, Heart, MessageCircle, MoreVertical, AlertTriangle, User, Calendar, Hash, Reply, Settings } from 'lucide-react';
+import { ProfileSettingsModal } from './ProfileSettingsModal';
 
 interface Post {
   id: number;
@@ -23,7 +24,7 @@ interface Reply {
 
 interface MyPostsPageProps {
   onBack: () => void;
-  userData: { username: string; registrationDate: string } | null;
+  userData: { username: string; registrationDate: string; email?: string } | null;
   posts: Post[];
   onDeletePost: (postId: number) => void;
 }
@@ -288,6 +289,8 @@ export const MyPostsPage: React.FC<MyPostsPageProps> = ({
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [postToDelete, setPostToDelete] = useState<Post | null>(null);
   const [activeTab, setActiveTab] = useState<'posts' | 'replies'>('posts');
+  const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+  const [currentUserData, setCurrentUserData] = useState(userData);
 
   // Filter posts that belong to the current user (in a real app, this would be based on user ID)
   // For demo purposes, we'll show the first few posts as user's posts
@@ -311,6 +314,17 @@ export const MyPostsPage: React.FC<MyPostsPageProps> = ({
     setPostToDelete(null);
   };
 
+  const handleUpdateProfile = (updates: { email?: string; password?: string }) => {
+    if (currentUserData) {
+      setCurrentUserData({
+        ...currentUserData,
+        ...(updates.email && { email: updates.email })
+      });
+    }
+    console.log('Profile updated:', updates);
+    // In a real app, this would make an API call to update the user's profile
+  };
+
   const formatJoinDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
@@ -325,17 +339,25 @@ export const MyPostsPage: React.FC<MyPostsPageProps> = ({
       
       {/* Header */}
       <div className="sticky top-0 z-40 bg-gray-900 border-b border-gray-700 px-4 py-4 shadow-lg">
-        <div className="flex items-center space-x-3">
-          <button 
-            onClick={onBack}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <button 
+              onClick={onBack}
+              className="p-2 hover:bg-gray-800 rounded-full transition-colors"
+            >
+              <ArrowLeft className="w-5 h-5 text-gray-400" />
+            </button>
+            <div>
+              <h1 className="text-lg font-semibold text-white">Profile</h1>
+              <p className="text-sm text-gray-400">Your anonymous identity</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setIsSettingsModalOpen(true)}
             className="p-2 hover:bg-gray-800 rounded-full transition-colors"
           >
-            <ArrowLeft className="w-5 h-5 text-gray-400" />
+            <Settings className="w-5 h-5 text-gray-400" />
           </button>
-          <div>
-            <h1 className="text-lg font-semibold text-white">Profile</h1>
-            <p className="text-sm text-gray-400">Your anonymous identity</p>
-          </div>
         </div>
       </div>
 
@@ -349,13 +371,13 @@ export const MyPostsPage: React.FC<MyPostsPageProps> = ({
           
           {/* Handle Name */}
           <h2 className="text-2xl font-bold text-white font-mono tracking-wider mb-2">
-            @{userData?.username || 'GUEST'}
+            @{currentUserData?.username || 'GUEST'}
           </h2>
           
           {/* Join Date */}
           <div className="flex items-center justify-center space-x-2 text-gray-400 text-sm mb-4">
             <Calendar className="w-4 h-4" />
-            <span>Joined {userData?.registrationDate ? formatJoinDate(userData.registrationDate) : 'Recently'}</span>
+            <span>Joined {currentUserData?.registrationDate ? formatJoinDate(currentUserData.registrationDate) : 'Recently'}</span>
           </div>
 
           {/* Stats */}
@@ -471,6 +493,14 @@ export const MyPostsPage: React.FC<MyPostsPageProps> = ({
         onClose={handleCancelDelete}
         onConfirm={handleConfirmDelete}
         post={postToDelete}
+      />
+
+      {/* Profile Settings Modal */}
+      <ProfileSettingsModal
+        isOpen={isSettingsModalOpen}
+        onClose={() => setIsSettingsModalOpen(false)}
+        userData={currentUserData}
+        onUpdateProfile={handleUpdateProfile}
       />
     </div>
   );
