@@ -496,8 +496,8 @@ const LoginScreen = ({
             alt="Postsy Logo" 
             className="h-16 w-auto mx-auto mb-6 drop-shadow-lg"
           />
-          <h1 className="text-3xl font-bold text-white mb-3">Welcome back</h1>
-          <p className="text-gray-400 text-lg mb-4">Sign in to continue sharing your thoughts</p>
+          <h1 className="text-3xl font-bold text-white mb-3">Sign in to continue</h1>
+          <p className="text-gray-400 text-lg mb-4">Access your anonymous account</p>
           
           <div className="flex items-start space-x-3 p-4 bg-green-900/30 border border-green-700 rounded-xl">
             <Shield className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
