@@ -9,7 +9,7 @@ import { MyPostsPage } from './components/MyPostsPage';
 import { MessagesPage } from './components/MessagesPage';
 import { SearchPage } from './components/SearchPage';
 import { NotificationModal } from './components/NotificationModal';
-import { Plus, Home, Users, MapPin, Flame, MessageCircle, User, Settings, Search, ChevronUp, ChevronDown, Type, MoreVertical, Edit3, Bell, UserCircle, Hash, Heart, Share2, Copy, Check, X } from 'lucide-react';
+import { Plus, Home, Users, MapPin, Flame, MessageCircle, User, Settings, Search, ChevronUp, ChevronDown, Type, MoreVertical, Edit3, Bell, UserCircle, Hash, Heart, Share2, Copy, Check, X, Reply } from 'lucide-react';
 
 interface UserData {
   username: string;
@@ -32,6 +32,18 @@ interface Post {
   topComment?: string;
   authorType?: 'you' | 'op' | 'anonymous';
   authorName?: string;
+}
+
+interface Reply {
+  id: number;
+  postId: number;
+  text: string;
+  authorName: string;
+  authorType: 'you' | 'op' | 'anonymous';
+  upvotes: number;
+  downvotes: number;
+  timeAgo: string;
+  userVote?: 'up' | 'down' | null;
 }
 
 interface Group {
@@ -109,7 +121,6 @@ const mockPosts: Post[] = [
     userVote: null,
     tags: ['wedding', 'relationships', 'traditions'],
     views: 15420,
-    topComment: "Absolutely! Your wedding, your rules. Friendship matters more than gender roles.",
     authorType: 'anonymous',
     authorName: generateRandomUsername()
   },
@@ -138,7 +149,6 @@ const mockPosts: Post[] = [
     userVote: null,
     tags: ['relationships', 'funny', 'food'],
     views: 6721,
-    topComment: "That's true love right there! 🧀❤️",
     authorType: 'you'
   },
   {
@@ -167,7 +177,6 @@ const mockPosts: Post[] = [
     userVote: null,
     tags: ['nature', 'gratitude', 'mindfulness'],
     views: 7823,
-    topComment: "Beautiful! Sometimes the best moments are the quiet ones.",
     authorType: 'anonymous',
     authorName: generateRandomUsername()
   },
@@ -182,7 +191,6 @@ const mockPosts: Post[] = [
     userVote: null,
     tags: ['kindness', 'positivity', 'humanity'],
     views: 12456,
-    topComment: "This is why I love humanity. Small acts, big impact! 💙",
     authorType: 'anonymous',
     authorName: generateRandomUsername()
   },
@@ -197,7 +205,6 @@ const mockPosts: Post[] = [
     userVote: null,
     tags: ['mentalhealth', 'depression', 'support'],
     views: 18923,
-    topComment: "You're not alone. Thank you for sharing - it helps others feel less isolated too.",
     authorType: 'anonymous',
     authorName: generateRandomUsername()
   },
@@ -216,6 +223,93 @@ const mockPosts: Post[] = [
     authorName: generateRandomUsername()
   }
 ];
+
+// Mock replies data
+const mockReplies: { [postId: number]: Reply[] } = {
+  1: [
+    {
+      id: 1,
+      postId: 1,
+      text: "Absolutely! Your wedding, your rules. Friendship matters more than gender roles. I had a man of honor at my wedding and it was perfect!",
+      authorName: generateRandomUsername(),
+      authorType: 'anonymous',
+      upvotes: 234,
+      downvotes: 12,
+      timeAgo: "2h",
+      userVote: null
+    },
+    {
+      id: 2,
+      postId: 1,
+      text: "I think it's beautiful when people break traditional norms for what feels authentic to them. Your best friend should be by your side regardless of gender.",
+      authorName: generateRandomUsername(),
+      authorType: 'anonymous',
+      upvotes: 189,
+      downvotes: 8,
+      timeAgo: "1h",
+      userVote: null
+    },
+    {
+      id: 3,
+      postId: 1,
+      text: "Did this at my sister's wedding and it was amazing! The photos turned out great and everyone loved the authenticity.",
+      authorName: generateRandomUsername(),
+      authorType: 'anonymous',
+      upvotes: 156,
+      downvotes: 5,
+      timeAgo: "45m",
+      userVote: null
+    }
+  ],
+  2: [
+    {
+      id: 4,
+      postId: 2,
+      text: "Pokemon GO was a game changer for so many people! It got me exploring parts of my city I never knew existed.",
+      authorName: generateRandomUsername(),
+      authorType: 'anonymous',
+      upvotes: 145,
+      downvotes: 7,
+      timeAgo: "3h",
+      userVote: null
+    },
+    {
+      id: 5,
+      postId: 2,
+      text: "Same here! I lost 20 pounds just from walking around catching Pokemon. Sometimes the best exercise doesn't feel like exercise.",
+      authorName: generateRandomUsername(),
+      authorType: 'anonymous',
+      upvotes: 198,
+      downvotes: 4,
+      timeAgo: "2h",
+      userVote: null
+    }
+  ],
+  3: [
+    {
+      id: 6,
+      postId: 3,
+      text: "That's true love right there! 🧀❤️ She really knows what makes you happy.",
+      authorName: generateRandomUsername(),
+      authorType: 'anonymous',
+      upvotes: 267,
+      downvotes: 3,
+      timeAgo: "6h",
+      userVote: null
+    },
+    {
+      id: 7,
+      postId: 3,
+      text: "Cheese is the way to anyone's heart! What kind of cheese did she get you?",
+      authorName: generateRandomUsername(),
+      authorType: 'anonymous',
+      upvotes: 89,
+      downvotes: 2,
+      timeAgo: "4h",
+      userVote: null
+    }
+  ]
+};
 
 // Mock notifications data
 const mockNotifications: Notification[] = [
@@ -452,11 +546,214 @@ const ShareModal = ({
   );
 };
 
-const PostCard = ({ post, onVote, onTagClick, onShare }: { 
+// Replies Modal Component
+const RepliesModal = ({ 
+  isOpen, 
+  onClose, 
+  post,
+  replies 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  post: Post | null;
+  replies: Reply[];
+}) => {
+  const [replyVotes, setReplyVotes] = useState<{ [replyId: number]: { userVote: 'up' | 'down' | null; upvotes: number; downvotes: number } }>({});
+
+  if (!isOpen || !post) return null;
+
+  const handleReplyVote = (replyId: number, voteType: 'up' | 'down') => {
+    const reply = replies.find(r => r.id === replyId);
+    if (!reply) return;
+
+    setReplyVotes(prev => {
+      const currentVote = prev[replyId]?.userVote || reply.userVote;
+      const currentUpvotes = prev[replyId]?.upvotes ?? reply.upvotes;
+      const currentDownvotes = prev[replyId]?.downvotes ?? reply.downvotes;
+      
+      let newUpvotes = currentUpvotes;
+      let newDownvotes = currentDownvotes;
+      let newUserVote: 'up' | 'down' | null = voteType;
+
+      // Remove previous vote if exists
+      if (currentVote === 'up') {
+        newUpvotes -= 1;
+      } else if (currentVote === 'down') {
+        newDownvotes -= 1;
+      }
+
+      // Apply new vote or remove if clicking same vote
+      if (currentVote === voteType) {
+        // Clicking same vote removes it
+        newUserVote = null;
+      } else {
+        // Apply new vote
+        if (voteType === 'up') {
+          newUpvotes += 1;
+        } else {
+          newDownvotes += 1;
+        }
+      }
+
+      return {
+        ...prev,
+        [replyId]: {
+          userVote: newUserVote,
+          upvotes: newUpvotes,
+          downvotes: newDownvotes
+        }
+      };
+    });
+  };
+
+  const getReplyVoteData = (reply: Reply) => {
+    const voteData = replyVotes[reply.id];
+    return {
+      userVote: voteData?.userVote ?? reply.userVote,
+      upvotes: voteData?.upvotes ?? reply.upvotes,
+      downvotes: voteData?.downvotes ?? reply.downvotes
+    };
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+      <div className="bg-gray-900 w-full max-w-md rounded-2xl shadow-2xl max-h-[80vh] overflow-hidden border border-gray-700">
+        {/* Header */}
+        <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center">
+              <Reply className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-white">All Replies</h3>
+              <p className="text-sm text-gray-400">{replies.length} replies</p>
+            </div>
+          </div>
+          <button 
+            onClick={onClose}
+            className="p-2 hover:bg-gray-800 rounded-full transition-colors"
+          >
+            <X className="w-5 h-5 text-gray-400" />
+          </button>
+        </div>
+
+        {/* Original Post Preview */}
+        <div className="p-4 border-b border-gray-700 bg-gray-800/50">
+          <div className="flex items-center space-x-2 mb-2">
+            <span className="text-sm">👤</span>
+            <span className="text-sm font-medium text-gray-400 font-mono">
+              @{post.authorType === 'you' ? 'You' : post.authorName}
+            </span>
+            <span className="text-xs text-gray-500">{post.timeAgo}</span>
+          </div>
+          <p className="text-sm text-gray-300 line-clamp-3">
+            {post.text}
+          </p>
+          <div className="flex items-center space-x-3 mt-2 text-xs text-gray-500">
+            <span>{post.upvotes - post.downvotes} votes</span>
+            <span>{post.comments} replies</span>
+          </div>
+        </div>
+
+        {/* Replies List */}
+        <div className="overflow-y-auto max-h-[calc(80vh-200px)]">
+          {replies.length > 0 ? (
+            <div className="divide-y divide-gray-700">
+              {replies.map((reply) => {
+                const voteData = getReplyVoteData(reply);
+                const netScore = voteData.upvotes - voteData.downvotes;
+                
+                return (
+                  <div key={reply.id} className="p-4 hover:bg-gray-800/50 transition-colors">
+                    <div className="flex space-x-3">
+                      {/* Reply Content */}
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span className="text-sm">👤</span>
+                          <span className="text-sm font-medium text-gray-400 font-mono">
+                            @{reply.authorType === 'you' ? 'You' : reply.authorName}
+                          </span>
+                          {reply.authorType === 'op' && (
+                            <span className="px-2 py-0.5 bg-yellow-600 text-yellow-100 text-xs font-medium rounded-full">
+                              OP
+                            </span>
+                          )}
+                          <span className="text-xs text-gray-500">{reply.timeAgo}</span>
+                        </div>
+                        <p className="text-sm text-white leading-relaxed mb-2">
+                          {reply.text}
+                        </p>
+                      </div>
+
+                      {/* Reply Voting */}
+                      <div className="flex flex-col items-center space-y-1 min-w-[50px]">
+                        <button
+                          onClick={() => handleReplyVote(reply.id, 'up')}
+                          className={`p-1.5 rounded-full transition-all duration-200 hover:scale-110 ${
+                            voteData.userVote === 'up'
+                              ? 'bg-green-500 text-white shadow-lg'
+                              : 'bg-gray-700 text-gray-400 hover:bg-green-500 hover:text-white'
+                          }`}
+                        >
+                          <ChevronUp className="w-4 h-4" />
+                        </button>
+                        
+                        <div className="text-center">
+                          <div className={`text-sm font-bold ${
+                            netScore > 0 ? 'text-green-400' : 
+                            netScore < 0 ? 'text-red-400' : 'text-gray-400'
+                          }`}>
+                            {netScore > 0 ? '+' : ''}{netScore}
+                          </div>
+                        </div>
+                        
+                        <button
+                          onClick={() => handleReplyVote(reply.id, 'down')}
+                          className={`p-1.5 rounded-full transition-all duration-200 hover:scale-110 ${
+                            voteData.userVote === 'down'
+                              ? 'bg-red-500 text-white shadow-lg'
+                              : 'bg-gray-700 text-gray-400 hover:bg-red-500 hover:text-white'
+                          }`}
+                        >
+                          <ChevronDown className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <Reply className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+              <h3 className="text-lg font-semibold text-white mb-2">No Replies Yet</h3>
+              <p className="text-gray-400 text-sm">
+                Be the first to share your thoughts on this post!
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-gray-700">
+          <button
+            onClick={onClose}
+            className="w-full px-4 py-3 bg-gradient-to-r from-white to-gray-200 text-gray-800 font-medium rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const PostCard = ({ post, onVote, onTagClick, onShare, onShowReplies }: { 
   post: Post; 
   onVote: (postId: number, voteType: 'up' | 'down') => void;
   onTagClick?: (tag: string) => void;
   onShare: (post: Post) => void;
+  onShowReplies: (post: Post) => void;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [voteAnimation, setVoteAnimation] = useState<'up' | 'down' | null>(null);
@@ -559,17 +856,6 @@ const PostCard = ({ post, onVote, onTagClick, onShare }: {
             </div>
           )}
 
-          {/* Top Comment Preview */}
-          {post.topComment && (
-            <div className="p-3 bg-gray-700/50 rounded-lg border-l-2 border-blue-400">
-              <div className="flex items-center space-x-2 mb-1">
-                <MessageCircle className="w-3 h-3 text-blue-400" />
-                <span className="text-xs text-blue-400 font-medium">Top comment</span>
-              </div>
-              <p className="text-sm text-gray-300 italic">"{post.topComment}"</p>
-            </div>
-          )}
-
           {/* Footer */}
           <div className="space-y-2">
             <div className="text-sm text-gray-500">
@@ -583,9 +869,14 @@ const PostCard = ({ post, onVote, onTagClick, onShare }: {
             
             <div className="flex items-center justify-between pt-2 border-t border-gray-700">
               <div className="flex items-center space-x-6">
-                <button className="flex items-center space-x-2 text-gray-400 hover:text-blue-400 transition-colors group/comment">
-                  <MessageCircle className="w-5 h-5 group-hover/comment:scale-110 transition-transform" />
-                  <span className="text-sm font-medium">{post.comments}</span>
+                <button 
+                  onClick={() => onShowReplies(post)}
+                  className="flex items-center space-x-2 text-gray-400 hover:text-blue-400 transition-colors group/replies"
+                >
+                  <Reply className="w-5 h-5 group-hover/replies:scale-110 transition-transform" />
+                  <span className="text-sm font-medium">
+                    {post.comments > 0 ? `Show all ${post.comments} replies` : 'Show replies'}
+                  </span>
                 </button>
                 <button 
                   onClick={() => onShare(post)}
@@ -660,7 +951,8 @@ const MainFeed = ({
   unreadNotificationCount,
   onVote,
   onTagClick,
-  onShare
+  onShare,
+  onShowReplies
 }: { 
   activeTab: string;
   posts: Post[];
@@ -672,6 +964,7 @@ const MainFeed = ({
   onVote: (postId: number, voteType: 'up' | 'down') => void;
   onTagClick: (tag: string) => void;
   onShare: (post: Post) => void;
+  onShowReplies: (post: Post) => void;
 }) => {
   const [feedFilter, setFeedFilter] = useState<'nearby' | 'popular' | 'all'>('nearby');
 
@@ -786,6 +1079,7 @@ const MainFeed = ({
                 onVote={onVote}
                 onTagClick={onTagClick}
                 onShare={onShare}
+                onShowReplies={onShowReplies}
               />
             ))}
           </div>
@@ -883,7 +1177,9 @@ function App() {
   const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isRepliesModalOpen, setIsRepliesModalOpen] = useState(false);
   const [postToShare, setPostToShare] = useState<Post | null>(null);
+  const [postToShowReplies, setPostToShowReplies] = useState<Post | null>(null);
   const [unreadMessageCount, setUnreadMessageCount] = useState(3); // Mock unread count
   const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
 
@@ -943,6 +1239,11 @@ function App() {
   const handleShare = (post: Post) => {
     setPostToShare(post);
     setIsShareModalOpen(true);
+  };
+
+  const handleShowReplies = (post: Post) => {
+    setPostToShowReplies(post);
+    setIsRepliesModalOpen(true);
   };
 
   const handleCreatePost = (newPost: {
@@ -1138,6 +1439,7 @@ function App() {
         onVote={handleVote}
         onTagClick={handleTagClick}
         onShare={handleShare}
+        onShowReplies={handleShowReplies}
       />
       <BottomNavigation 
         activeTab={activeTab} 
@@ -1164,6 +1466,12 @@ function App() {
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
         post={postToShare}
+      />
+      <RepliesModal
+        isOpen={isRepliesModalOpen}
+        onClose={() => setIsRepliesModalOpen(false)}
+        post={postToShowReplies}
+        replies={postToShowReplies ? (mockReplies[postToShowReplies.id] || []) : []}
       />
     </>
   );
