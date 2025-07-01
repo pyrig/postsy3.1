@@ -175,13 +175,17 @@ const MainFeed = ({
   posts, 
   onCreatePost,
   onProfileClick,
-  userData 
+  onMessagesClick,
+  userData,
+  unreadMessageCount 
 }: { 
   activeTab: string;
   posts: Post[];
   onCreatePost: () => void;
   onProfileClick: () => void;
+  onMessagesClick: () => void;
   userData: UserData | null;
+  unreadMessageCount: number;
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -206,6 +210,19 @@ const MainFeed = ({
             />
           </div>
           <div className="flex items-center space-x-3">
+            <button
+              onClick={onMessagesClick}
+              className="relative p-2 hover:bg-gray-800 rounded-full transition-colors"
+            >
+              <MessageCircle className="w-6 h-6 text-white" />
+              {unreadMessageCount > 0 && (
+                <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                  <span className="text-xs font-bold text-white">
+                    {unreadMessageCount > 9 ? '9+' : unreadMessageCount}
+                  </span>
+                </div>
+              )}
+            </button>
             <button
               onClick={onCreatePost}
               className="p-2 hover:bg-gray-800 rounded-full transition-colors"
@@ -274,19 +291,16 @@ const MainFeed = ({
 
 const BottomNavigation = ({ 
   activeTab, 
-  onTabChange,
-  unreadMessageCount = 0
+  onTabChange
 }: { 
   activeTab: string; 
   onTabChange: (tab: string) => void;
-  unreadMessageCount?: number;
 }) => {
   const tabs = [
     { key: 'home', icon: Home, label: 'Home' },
     { key: 'popular', icon: Flame, label: 'Popular' },
     { key: 'groups', icon: Users, label: 'Groups' },
-    { key: 'nearby', icon: MapPin, label: 'Nearby' },
-    { key: 'messages', icon: MessageCircle, label: 'Messages', badge: unreadMessageCount }
+    { key: 'nearby', icon: MapPin, label: 'Nearby' }
   ];
 
   return (
@@ -306,16 +320,7 @@ const BottomNavigation = ({
                   : 'text-gray-500 hover:text-gray-300'
               }`}
             >
-              <div className="relative">
-                <Icon className={`w-5 h-5 ${isActive ? 'text-white' : ''}`} />
-                {tab.badge && tab.badge > 0 && (
-                  <div className="absolute -top-2 -right-2 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                    <span className="text-xs font-bold text-white">
-                      {tab.badge > 9 ? '9+' : tab.badge}
-                    </span>
-                  </div>
-                )}
-              </div>
+              <Icon className={`w-5 h-5 ${isActive ? 'text-white' : ''}`} />
               <span className="text-xs font-medium">{tab.label}</span>
             </button>
           );
@@ -382,9 +387,6 @@ function App() {
       setCurrentPage('popular');
     } else if (tab === 'nearby') {
       setCurrentPage('nearby');
-    } else if (tab === 'messages') {
-      setCurrentPage('messages');
-      setUnreadMessageCount(0); // Clear unread count when viewing messages
     } else {
       setCurrentPage('main');
     }
@@ -393,6 +395,11 @@ function App() {
   const handleBackToMain = () => {
     setCurrentPage('main');
     setActiveTab('home');
+  };
+
+  const handleMessagesClick = () => {
+    setCurrentPage('messages');
+    setUnreadMessageCount(0); // Clear unread count when viewing messages
   };
 
   if (!isAuthenticated) {
@@ -411,7 +418,6 @@ function App() {
         <BottomNavigation 
           activeTab={activeTab} 
           onTabChange={handleTabChange}
-          unreadMessageCount={unreadMessageCount}
         />
         <CreateGroupModal
           isOpen={isCreateGroupModalOpen}
@@ -433,7 +439,6 @@ function App() {
         <BottomNavigation 
           activeTab={activeTab} 
           onTabChange={handleTabChange}
-          unreadMessageCount={unreadMessageCount}
         />
       </>
     );
@@ -449,7 +454,6 @@ function App() {
         <BottomNavigation 
           activeTab={activeTab} 
           onTabChange={handleTabChange}
-          unreadMessageCount={unreadMessageCount}
         />
       </>
     );
@@ -465,7 +469,6 @@ function App() {
         <BottomNavigation 
           activeTab={activeTab} 
           onTabChange={handleTabChange}
-          unreadMessageCount={unreadMessageCount}
         />
       </>
     );
@@ -483,7 +486,6 @@ function App() {
         <BottomNavigation 
           activeTab={activeTab} 
           onTabChange={handleTabChange}
-          unreadMessageCount={unreadMessageCount}
         />
       </>
     );
@@ -496,12 +498,13 @@ function App() {
         posts={posts}
         onCreatePost={() => setIsCreatePostModalOpen(true)}
         onProfileClick={() => setCurrentPage('profile')}
+        onMessagesClick={handleMessagesClick}
         userData={userData}
+        unreadMessageCount={unreadMessageCount}
       />
       <BottomNavigation 
         activeTab={activeTab} 
         onTabChange={handleTabChange}
-        unreadMessageCount={unreadMessageCount}
       />
       <CreatePostModal
         isOpen={isCreatePostModalOpen}
