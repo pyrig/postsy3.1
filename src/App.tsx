@@ -186,11 +186,19 @@ const MainFeed = ({
   unreadMessageCount: number;
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [feedFilter, setFeedFilter] = useState<'all' | 'popular' | 'nearby'>('all');
 
   const filteredPosts = posts.filter(post => {
     const matchesSearch = post.text.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesTab = activeTab === 'home' || post.category === activeTab;
-    return matchesSearch && matchesTab;
+    
+    let matchesFilter = true;
+    if (feedFilter === 'popular') {
+      matchesFilter = post.category === 'popular';
+    } else if (feedFilter === 'nearby') {
+      matchesFilter = post.category === 'nearby';
+    }
+    
+    return matchesSearch && matchesFilter;
   });
 
   return (
@@ -241,6 +249,43 @@ const MainFeed = ({
             className="w-full pl-10 pr-4 py-3 border border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent bg-gray-800 text-white placeholder-gray-400"
           />
         </div>
+
+        {/* Feed Filter Tabs */}
+        <div className="flex space-x-1 bg-gray-800 rounded-xl p-1">
+          <button
+            onClick={() => setFeedFilter('all')}
+            className={`flex-1 flex items-center justify-center space-x-2 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+              feedFilter === 'all'
+                ? 'bg-white text-gray-800'
+                : 'text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            <Home className="w-4 h-4" />
+            <span>All</span>
+          </button>
+          <button
+            onClick={() => setFeedFilter('popular')}
+            className={`flex-1 flex items-center justify-center space-x-2 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+              feedFilter === 'popular'
+                ? 'bg-white text-gray-800'
+                : 'text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            <Flame className="w-4 h-4" />
+            <span>Popular</span>
+          </button>
+          <button
+            onClick={() => setFeedFilter('nearby')}
+            className={`flex-1 flex items-center justify-center space-x-2 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
+              feedFilter === 'nearby'
+                ? 'bg-white text-gray-800'
+                : 'text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            <MapPin className="w-4 h-4" />
+            <span>Nearby</span>
+          </button>
+        </div>
       </div>
 
       {/* Content */}
@@ -258,7 +303,7 @@ const MainFeed = ({
             </div>
             <h3 className="text-lg font-semibold text-white mb-2">No Posts Found</h3>
             <p className="text-gray-400 text-sm mb-6">
-              {searchQuery ? 'Try adjusting your search terms' : 'No posts available in this category'}
+              {searchQuery ? 'Try adjusting your search terms' : `No ${feedFilter === 'all' ? '' : feedFilter + ' '}posts available`}
             </p>
             <button
               onClick={onCreatePost}
@@ -292,9 +337,7 @@ const BottomNavigation = ({
 }) => {
   const tabs = [
     { key: 'home', icon: Home, label: 'Home' },
-    { key: 'popular', icon: Flame, label: 'Popular' },
     { key: 'groups', icon: Users, label: 'Groups' },
-    { key: 'nearby', icon: MapPin, label: 'Nearby' },
     { key: 'profile', icon: User, label: 'Profile', isProfile: true }
   ];
 
@@ -343,7 +386,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [activeTab, setActiveTab] = useState('home');
-  const [currentPage, setCurrentPage] = useState<'main' | 'groups' | 'popular' | 'nearby' | 'messages' | 'profile'>('main');
+  const [currentPage, setCurrentPage] = useState<'main' | 'groups' | 'messages' | 'profile'>('main');
   const [posts, setPosts] = useState<Post[]>(mockPosts);
   const [isCreatePostModalOpen, setIsCreatePostModalOpen] = useState(false);
   const [isCreateGroupModalOpen, setIsCreateGroupModalOpen] = useState(false);
@@ -392,10 +435,6 @@ function App() {
     setActiveTab(tab);
     if (tab === 'groups') {
       setCurrentPage('groups');
-    } else if (tab === 'popular') {
-      setCurrentPage('popular');
-    } else if (tab === 'nearby') {
-      setCurrentPage('nearby');
     } else {
       setCurrentPage('main');
     }
@@ -439,38 +478,6 @@ function App() {
           onClose={() => setIsCreateGroupModalOpen(false)}
           onCreateGroup={handleCreateGroup}
           userData={userData}
-        />
-      </>
-    );
-  }
-
-  if (currentPage === 'popular') {
-    return (
-      <>
-        <PopularPage
-          onBack={handleBackToMain}
-          posts={posts}
-        />
-        <BottomNavigation 
-          activeTab={activeTab} 
-          onTabChange={handleTabChange}
-          onProfileClick={handleProfileClick}
-        />
-      </>
-    );
-  }
-
-  if (currentPage === 'nearby') {
-    return (
-      <>
-        <NearbyPage
-          onBack={handleBackToMain}
-          posts={posts}
-        />
-        <BottomNavigation 
-          activeTab={activeTab} 
-          onTabChange={handleTabChange}
-          onProfileClick={handleProfileClick}
         />
       </>
     );
