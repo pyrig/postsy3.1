@@ -9,7 +9,7 @@ import { MyPostsPage } from './components/MyPostsPage';
 import { MessagesPage } from './components/MessagesPage';
 import { SearchPage } from './components/SearchPage';
 import { NotificationModal } from './components/NotificationModal';
-import { Plus, Home, Users, MapPin, Flame, MessageCircle, User, Settings, Search, Heart, Type, MoreVertical, Edit3, Bell } from 'lucide-react';
+import { Plus, Home, Users, MapPin, Flame, MessageCircle, User, Settings, Search, Heart, Type, MoreVertical, Edit3, Bell, UserCircle } from 'lucide-react';
 
 interface UserData {
   username: string;
@@ -408,7 +408,7 @@ const BottomNavigation = ({
     { key: 'search', icon: Search, label: 'Search', isSearch: true },
     { key: 'create', icon: Plus, label: 'Create', isCreate: true },
     { key: 'groups', icon: Users, label: 'Groups' },
-    { key: 'profile', icon: User, label: 'Profile', isProfile: true }
+    { key: 'profile', icon: UserCircle, label: 'Profile', isProfile: true }
   ];
 
   return (
@@ -438,13 +438,7 @@ const BottomNavigation = ({
                   : 'text-gray-500 hover:text-gray-300'
               }`}
             >
-              {tab.isProfile ? (
-                <div className={`w-6 h-6 bg-gradient-to-br from-white to-gray-300 rounded-full flex items-center justify-center ${
-                  isActive ? 'ring-2 ring-white ring-offset-2 ring-offset-gray-900' : ''
-                }`}>
-                  <Type className="w-3 h-3 text-gray-800" />
-                </div>
-              ) : tab.isCreate ? (
+              {tab.isCreate ? (
                 <div className={`w-8 h-8 bg-gradient-to-r from-white to-gray-200 rounded-full flex items-center justify-center shadow-lg transform transition-all duration-200 ${
                   isActive ? 'scale-110' : 'hover:scale-105'
                 }`}>
