@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Trash2, Heart, MessageCircle, MoreVertical, AlertTriangle, User, Calendar, Hash, Reply, Settings } from 'lucide-react';
+import { ArrowLeft, Trash2, ChevronUp, ChevronDown, MessageCircle, MoreVertical, AlertTriangle, User, Calendar, Hash, Reply, Settings } from 'lucide-react';
 import { ProfileSettingsModal } from './ProfileSettingsModal';
 
 interface Post {
   id: number;
   text: string;
-  likes: number;
+  upvotes: number;
+  downvotes: number;
   comments: number;
   timeAgo: string;
   category: 'groups' | 'popular' | 'nearby' | 'latest';
+  userVote?: 'up' | 'down' | null;
 }
 
 interface Reply {
@@ -16,9 +18,11 @@ interface Reply {
   postId: number;
   originalPostText: string;
   replyText: string;
-  likes: number;
+  upvotes: number;
+  downvotes: number;
   timeAgo: string;
   originalAuthor: string;
+  userVote?: 'up' | 'down' | null;
 }
 
 interface MyPostsPageProps {
@@ -57,43 +61,51 @@ const StatusBar = () => (
   </div>
 );
 
-// Mock replies data
+// Mock replies data with voting
 const mockReplies: Reply[] = [
   {
     id: 1,
     postId: 101,
     originalPostText: "What's your favorite coffee shop in the city?",
     replyText: "Definitely the one on Main Street! Their lattes are incredible and the atmosphere is perfect for studying.",
-    likes: 23,
+    upvotes: 18,
+    downvotes: 5,
     timeAgo: "2h",
-    originalAuthor: "COFFEE_LOVER"
+    originalAuthor: "COFFEE_LOVER",
+    userVote: null
   },
   {
     id: 2,
     postId: 102,
     originalPostText: "Anyone else struggling with work-life balance?",
     replyText: "I feel you! I started setting strict boundaries with work hours and it's helped a lot. Also meditation apps are game changers.",
-    likes: 45,
+    upvotes: 35,
+    downvotes: 10,
     timeAgo: "5h",
-    originalAuthor: "BUSY_BEE"
+    originalAuthor: "BUSY_BEE",
+    userVote: null
   },
   {
     id: 3,
     postId: 103,
     originalPostText: "Best study spots near campus?",
     replyText: "The library's third floor is usually quiet, and there's a great cafe called 'Bean There' just off campus with good wifi!",
-    likes: 12,
+    upvotes: 8,
+    downvotes: 4,
     timeAgo: "1d",
-    originalAuthor: "STUDENT_LIFE"
+    originalAuthor: "STUDENT_LIFE",
+    userVote: null
   },
   {
     id: 4,
     postId: 104,
     originalPostText: "Feeling overwhelmed with everything lately...",
     replyText: "You're not alone in feeling this way. Take it one day at a time and don't be afraid to reach out for support when you need it. 💙",
-    likes: 67,
+    upvotes: 52,
+    downvotes: 15,
     timeAgo: "2d",
-    originalAuthor: "ANONYMOUS_USER"
+    originalAuthor: "ANONYMOUS_USER",
+    userVote: null
   }
 ];
 
@@ -109,6 +121,8 @@ const DeleteConfirmModal = ({
   post: Post | null;
 }) => {
   if (!isOpen || !post) return null;
+
+  const getNetScore = () => post.upvotes - post.downvotes;
 
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
@@ -131,8 +145,8 @@ const DeleteConfirmModal = ({
               </p>
               <div className="flex items-center space-x-3 mt-2 text-xs text-gray-400">
                 <span className="flex items-center space-x-1">
-                  <Heart className="w-3 h-3" />
-                  <span>{post.likes}</span>
+                  <ChevronUp className="w-3 h-3" />
+                  <span>{getNetScore()}</span>
                 </span>
                 <span className="flex items-center space-x-1">
                   <MessageCircle className="w-3 h-3" />
@@ -182,92 +196,144 @@ const PostCard = ({
     }
   };
 
+  const getNetScore = () => post.upvotes - post.downvotes;
+
   return (
     <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-gray-600 transition-all group">
-      <div className="space-y-4">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getCategoryColor(post.category)}`}>
-            {post.category.toUpperCase()}
-          </span>
-          <div className="relative">
-            <button
-              onClick={() => setShowMenu(!showMenu)}
-              className="p-2 hover:bg-gray-700 rounded-full transition-colors opacity-0 group-hover:opacity-100"
-            >
-              <MoreVertical className="w-4 h-4 text-gray-400" />
-            </button>
-            
-            {showMenu && (
-              <div className="absolute top-full right-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-xl shadow-xl z-10">
-                <button
-                  onClick={() => {
-                    onDelete(post);
-                    setShowMenu(false);
-                  }}
-                  className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-gray-800 transition-colors text-red-400 hover:text-red-300"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span className="text-sm font-medium">Delete Post</span>
-                </button>
+      <div className="flex space-x-4">
+        {/* Main Content */}
+        <div className="flex-1 space-y-4">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getCategoryColor(post.category)}`}>
+              {post.category.toUpperCase()}
+            </span>
+            <div className="relative">
+              <button
+                onClick={() => setShowMenu(!showMenu)}
+                className="p-2 hover:bg-gray-700 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+              >
+                <MoreVertical className="w-4 h-4 text-gray-400" />
+              </button>
+              
+              {showMenu && (
+                <div className="absolute top-full right-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-xl shadow-xl z-10">
+                  <button
+                    onClick={() => {
+                      onDelete(post);
+                      setShowMenu(false);
+                    }}
+                    className="w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-gray-800 transition-colors text-red-400 hover:text-red-300"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span className="text-sm font-medium">Delete Post</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Content */}
+          <div>
+            <p className="text-white text-base leading-relaxed">
+              {post.text}
+            </p>
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between pt-2 border-t border-gray-700">
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-2 text-gray-400">
+                <MessageCircle className="w-5 h-5" />
+                <span className="text-sm font-medium">{post.comments}</span>
               </div>
-            )}
+            </div>
+            <span className="text-sm text-gray-500">{post.timeAgo}</span>
           </div>
         </div>
 
-        {/* Content */}
-        <div>
-          <p className="text-white text-base leading-relaxed">
-            {post.text}
-          </p>
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between pt-2 border-t border-gray-700">
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-2 text-gray-400">
-              <Heart className="w-5 h-5" />
-              <span className="text-sm font-medium">{post.likes.toLocaleString()}</span>
+        {/* Voting Section */}
+        <div className="flex flex-col items-center space-y-2 min-w-[60px]">
+          <div className="p-2 rounded-full bg-gray-700">
+            <ChevronUp className="w-5 h-5 text-gray-400" />
+          </div>
+          
+          <div className="text-center">
+            <div className={`text-lg font-bold ${
+              getNetScore() > 0 ? 'text-green-400' : 
+              getNetScore() < 0 ? 'text-red-400' : 'text-gray-400'
+            }`}>
+              {getNetScore() > 0 ? '+' : ''}{getNetScore().toLocaleString()}
             </div>
-            <div className="flex items-center space-x-2 text-gray-400">
-              <MessageCircle className="w-5 h-5" />
-              <span className="text-sm font-medium">{post.comments}</span>
+            <div className="text-xs text-gray-500">
+              {post.upvotes.toLocaleString()}↑ {post.downvotes.toLocaleString()}↓
             </div>
           </div>
-          <span className="text-sm text-gray-500">{post.timeAgo}</span>
+          
+          <div className="p-2 rounded-full bg-gray-700">
+            <ChevronDown className="w-5 h-5 text-gray-400" />
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-const ReplyCard = ({ reply }: { reply: Reply }) => (
-  <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
-    <div className="mb-3">
-      <div className="flex items-center space-x-2 mb-2">
-        <Reply className="w-4 h-4 text-gray-400" />
-        <span className="text-xs text-gray-400">Replying to @{reply.originalAuthor}</span>
-      </div>
-      <p className="text-sm text-gray-400 italic line-clamp-2">
-        "{reply.originalPostText}"
-      </p>
-    </div>
-    
-    <p className="text-white text-sm leading-relaxed mb-3">
-      {reply.replyText}
-    </p>
-    
-    <div className="flex items-center justify-between text-xs text-gray-400">
-      <div className="flex items-center space-x-3">
-        <div className="flex items-center space-x-1">
-          <Heart className="w-3 h-3" />
-          <span>{reply.likes}</span>
+const ReplyCard = ({ reply }: { reply: Reply }) => {
+  const getNetScore = () => reply.upvotes - reply.downvotes;
+
+  return (
+    <div className="bg-gray-800 rounded-xl p-4 border border-gray-700">
+      <div className="flex space-x-4">
+        {/* Main Content */}
+        <div className="flex-1">
+          <div className="mb-3">
+            <div className="flex items-center space-x-2 mb-2">
+              <Reply className="w-4 h-4 text-gray-400" />
+              <span className="text-xs text-gray-400">Replying to @{reply.originalAuthor}</span>
+            </div>
+            <p className="text-sm text-gray-400 italic line-clamp-2">
+              "{reply.originalPostText}"
+            </p>
+          </div>
+          
+          <p className="text-white text-sm leading-relaxed mb-3">
+            {reply.replyText}
+          </p>
+          
+          <div className="flex items-center justify-between text-xs text-gray-400">
+            <div className="flex items-center space-x-3">
+              <span>{reply.timeAgo}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Voting Section */}
+        <div className="flex flex-col items-center space-y-1 min-w-[50px]">
+          <div className="p-1.5 rounded-full bg-gray-700">
+            <ChevronUp className="w-4 h-4 text-gray-400" />
+          </div>
+          
+          <div className="text-center">
+            <div className={`text-sm font-bold ${
+              getNetScore() > 0 ? 'text-green-400' : 
+              getNetScore() < 0 ? 'text-red-400' : 'text-gray-400'
+            }`}>
+              {getNetScore() > 0 ? '+' : ''}{getNetScore()}
+            </div>
+            <div className="text-xs text-gray-500">
+              {reply.upvotes}↑ {reply.downvotes}↓
+            </div>
+          </div>
+          
+          <div className="p-1.5 rounded-full bg-gray-700">
+            <ChevronDown className="w-4 h-4 text-gray-400" />
+          </div>
         </div>
       </div>
-      <span>{reply.timeAgo}</span>
     </div>
-  </div>
-);
+  );
+};
 
 export const MyPostsPage: React.FC<MyPostsPageProps> = ({
   onBack,
@@ -320,6 +386,14 @@ export const MyPostsPage: React.FC<MyPostsPageProps> = ({
       month: 'long', 
       year: 'numeric' 
     });
+  };
+
+  const getTotalScore = () => {
+    return userPosts.reduce((sum, post) => sum + (post.upvotes - post.downvotes), 0);
+  };
+
+  const getTotalUpvotes = () => {
+    return userPosts.reduce((sum, post) => sum + post.upvotes, 0);
   };
 
   return (
@@ -376,10 +450,13 @@ export const MyPostsPage: React.FC<MyPostsPageProps> = ({
               <p className="text-xs text-gray-400">Posts</p>
             </div>
             <div className="text-center p-3 bg-gray-800 rounded-xl border border-gray-700">
-              <p className="text-xl font-bold text-white">
-                {userPosts.reduce((sum, post) => sum + post.likes, 0)}
+              <p className={`text-xl font-bold ${
+                getTotalScore() > 0 ? 'text-green-400' : 
+                getTotalScore() < 0 ? 'text-red-400' : 'text-gray-400'
+              }`}>
+                {getTotalScore() > 0 ? '+' : ''}{getTotalScore()}
               </p>
-              <p className="text-xs text-gray-400">Likes</p>
+              <p className="text-xs text-gray-400">Score</p>
             </div>
             <div className="text-center p-3 bg-gray-800 rounded-xl border border-gray-700">
               <p className="text-xl font-bold text-white">{mockReplies.length}</p>

@@ -9,7 +9,7 @@ import { MyPostsPage } from './components/MyPostsPage';
 import { MessagesPage } from './components/MessagesPage';
 import { SearchPage } from './components/SearchPage';
 import { NotificationModal } from './components/NotificationModal';
-import { Plus, Home, Users, MapPin, Flame, MessageCircle, User, Settings, Search, Heart, Type, MoreVertical, Edit3, Bell, UserCircle } from 'lucide-react';
+import { Plus, Home, Users, MapPin, Flame, MessageCircle, User, Settings, Search, ChevronUp, ChevronDown, Type, MoreVertical, Edit3, Bell, UserCircle } from 'lucide-react';
 
 interface UserData {
   username: string;
@@ -19,12 +19,14 @@ interface UserData {
 interface Post {
   id: number;
   text: string;
-  likes: number;
+  upvotes: number;
+  downvotes: number;
   comments: number;
   timeAgo: string;
   category: 'groups' | 'popular' | 'nearby' | 'latest';
   groupId?: string;
   groupName?: string;
+  userVote?: 'up' | 'down' | null;
 }
 
 interface Group {
@@ -84,67 +86,83 @@ const mockPosts: Post[] = [
   {
     id: 1,
     text: "Do you think it's okay to have a 'man of honor' instead of 'maid of honor' at your wedding if your best friend for 5 years is a guy?",
-    likes: 4821,
+    upvotes: 3821,
+    downvotes: 1000,
     comments: 892,
     timeAgo: "3h",
-    category: 'popular'
+    category: 'popular',
+    userVote: null
   },
   {
     id: 2,
     text: "When I heard about Pokemon GO, I thought it was just another mobile game. Boy was I wrong! It completely changed how I see my neighborhood and got me walking again.",
-    likes: 3456,
+    upvotes: 2956,
+    downvotes: 500,
     comments: 567,
     timeAgo: "5h",
-    category: 'popular'
+    category: 'popular',
+    userVote: null
   },
   {
     id: 3,
     text: "My girlfriend bought me cheese for our anniversary 😂 Not just any cheese - she got me a whole selection from this fancy cheese shop. Honestly, it was the most thoughtful gift ever!",
-    likes: 2987,
+    upvotes: 2487,
+    downvotes: 500,
     comments: 423,
     timeAgo: "8h",
-    category: 'popular'
+    category: 'popular',
+    userVote: null
   },
   {
     id: 4,
     text: "Coffee shop vibes hit different when you're working on your dreams. There's something about the ambient noise and caffeine that just makes everything click.",
-    likes: 1876,
+    upvotes: 1576,
+    downvotes: 300,
     comments: 234,
     timeAgo: "2h",
     category: 'groups',
-    groupName: 'Coffee Lovers'
+    groupName: 'Coffee Lovers',
+    userVote: null
   },
   {
     id: 5,
     text: "The sunset tonight reminded me why I love this place. Sometimes you need to stop and appreciate the simple beauty around you.",
-    likes: 3245,
+    upvotes: 2745,
+    downvotes: 500,
     comments: 456,
     timeAgo: "1h",
-    category: 'nearby'
+    category: 'nearby',
+    userVote: null
   },
   {
     id: 6,
     text: "Sometimes the smallest gestures mean the most. A stranger held the door for me today and it completely turned my mood around. Kindness is contagious.",
-    likes: 5432,
+    upvotes: 4932,
+    downvotes: 500,
     comments: 789,
     timeAgo: "4h",
-    category: 'latest'
+    category: 'latest',
+    userVote: null
   },
   {
     id: 7,
     text: "I wish people understood my depression. I can go from happy to sad in a blink of an eye because it all builds up inside. Wish I could handle it better.",
-    likes: 6234,
+    upvotes: 5734,
+    downvotes: 500,
     comments: 1456,
     timeAgo: "12h",
-    category: 'popular'
+    category: 'popular',
+    userVote: null
   },
   {
     id: 8,
     text: "Late night study session at the 24/7 diner. Their pie is keeping me going! 🥧 Sometimes the best productivity happens when the world is quiet.",
-    likes: 567,
+    upvotes: 467,
+    downvotes: 100,
     comments: 89,
     timeAgo: "6h",
-    category: 'nearby'
+    category: 'nearby',
+    userVote: null
   }
 ];
 
@@ -153,8 +171,8 @@ const mockNotifications: Notification[] = [
   {
     id: '1',
     type: 'like',
-    title: 'New Like',
-    message: 'ALEX9876 liked your post about coffee shop vibes',
+    title: 'New Upvote',
+    message: 'ALEX9876 upvoted your post about coffee shop vibes',
     timestamp: new Date(Date.now() - 15 * 60 * 1000), // 15 minutes ago
     isRead: false,
     username: 'ALEX9876',
@@ -191,8 +209,8 @@ const mockNotifications: Notification[] = [
   {
     id: '5',
     type: 'like',
-    title: 'New Like',
-    message: 'EMMA8901 liked your post about sunset views',
+    title: 'New Upvote',
+    message: 'EMMA8901 upvoted your post about sunset views',
     timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
     isRead: true,
     username: 'EMMA8901',
@@ -219,7 +237,7 @@ const mockNotifications: Notification[] = [
   }
 ];
 
-const PostCard = ({ post }: { post: Post }) => {
+const PostCard = ({ post, onVote }: { post: Post; onVote: (postId: number, voteType: 'up' | 'down') => void }) => {
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'popular': return 'text-red-400 bg-red-900/20 border-red-700';
@@ -230,46 +248,84 @@ const PostCard = ({ post }: { post: Post }) => {
     }
   };
 
+  const getNetScore = () => post.upvotes - post.downvotes;
+
   return (
     <div className="bg-gray-800 rounded-2xl p-6 border border-gray-700 hover:border-gray-600 transition-all cursor-pointer group">
-      <div className="space-y-4">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            {post.groupName && (
-              <span className="px-2 py-1 bg-white/10 text-white text-xs font-medium rounded-full border border-white/20">
-                {post.groupName}
+      <div className="flex space-x-4">
+        {/* Main Content */}
+        <div className="flex-1 space-y-4">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              {post.groupName && (
+                <span className="px-2 py-1 bg-white/10 text-white text-xs font-medium rounded-full border border-white/20">
+                  {post.groupName}
+                </span>
+              )}
+              <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getCategoryColor(post.category)}`}>
+                {post.category.toUpperCase()}
               </span>
-            )}
-            <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getCategoryColor(post.category)}`}>
-              {post.category.toUpperCase()}
-            </span>
+            </div>
+            <button className="p-2 hover:bg-gray-700 rounded-full transition-colors opacity-0 group-hover:opacity-100">
+              <MoreVertical className="w-4 h-4 text-gray-400" />
+            </button>
           </div>
-          <button className="p-2 hover:bg-gray-700 rounded-full transition-colors opacity-0 group-hover:opacity-100">
-            <MoreVertical className="w-4 h-4 text-gray-400" />
+
+          {/* Content */}
+          <div>
+            <p className="text-white text-base leading-relaxed">
+              {post.text}
+            </p>
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between pt-2 border-t border-gray-700">
+            <div className="flex items-center space-x-6">
+              <button className="flex items-center space-x-2 text-gray-400 hover:text-blue-400 transition-colors group/comment">
+                <MessageCircle className="w-5 h-5 group-hover/comment:scale-110 transition-transform" />
+                <span className="text-sm font-medium">{post.comments}</span>
+              </button>
+            </div>
+            <span className="text-sm text-gray-500">{post.timeAgo}</span>
+          </div>
+        </div>
+
+        {/* Voting Section */}
+        <div className="flex flex-col items-center space-y-2 min-w-[60px]">
+          <button
+            onClick={() => onVote(post.id, 'up')}
+            className={`p-2 rounded-full transition-all duration-200 hover:scale-110 ${
+              post.userVote === 'up'
+                ? 'bg-green-500 text-white shadow-lg'
+                : 'bg-gray-700 text-gray-400 hover:bg-green-500 hover:text-white'
+            }`}
+          >
+            <ChevronUp className="w-5 h-5" />
           </button>
-        </div>
-
-        {/* Content */}
-        <div>
-          <p className="text-white text-base leading-relaxed">
-            {post.text}
-          </p>
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between pt-2 border-t border-gray-700">
-          <div className="flex items-center space-x-6">
-            <button className="flex items-center space-x-2 text-gray-400 hover:text-red-400 transition-colors group/like">
-              <Heart className="w-5 h-5 group-hover/like:scale-110 transition-transform" />
-              <span className="text-sm font-medium">{post.likes.toLocaleString()}</span>
-            </button>
-            <button className="flex items-center space-x-2 text-gray-400 hover:text-blue-400 transition-colors group/comment">
-              <MessageCircle className="w-5 h-5 group-hover/comment:scale-110 transition-transform" />
-              <span className="text-sm font-medium">{post.comments}</span>
-            </button>
+          
+          <div className="text-center">
+            <div className={`text-lg font-bold ${
+              getNetScore() > 0 ? 'text-green-400' : 
+              getNetScore() < 0 ? 'text-red-400' : 'text-gray-400'
+            }`}>
+              {getNetScore() > 0 ? '+' : ''}{getNetScore().toLocaleString()}
+            </div>
+            <div className="text-xs text-gray-500">
+              {post.upvotes.toLocaleString()}↑ {post.downvotes.toLocaleString()}↓
+            </div>
           </div>
-          <span className="text-sm text-gray-500">{post.timeAgo}</span>
+          
+          <button
+            onClick={() => onVote(post.id, 'down')}
+            className={`p-2 rounded-full transition-all duration-200 hover:scale-110 ${
+              post.userVote === 'down'
+                ? 'bg-red-500 text-white shadow-lg'
+                : 'bg-gray-700 text-gray-400 hover:bg-red-500 hover:text-white'
+            }`}
+          >
+            <ChevronDown className="w-5 h-5" />
+          </button>
         </div>
       </div>
     </div>
@@ -283,7 +339,8 @@ const MainFeed = ({
   onNotificationsClick,
   userData,
   unreadMessageCount,
-  unreadNotificationCount
+  unreadNotificationCount,
+  onVote
 }: { 
   activeTab: string;
   posts: Post[];
@@ -292,6 +349,7 @@ const MainFeed = ({
   userData: UserData | null;
   unreadMessageCount: number;
   unreadNotificationCount: number;
+  onVote: (postId: number, voteType: 'up' | 'down') => void;
 }) => {
   const [feedFilter, setFeedFilter] = useState<'nearby' | 'popular' | 'all'>('nearby');
 
@@ -391,7 +449,7 @@ const MainFeed = ({
         {filteredPosts.length > 0 ? (
           <div className="space-y-4">
             {filteredPosts.map((post) => (
-              <PostCard key={post.id} post={post} />
+              <PostCard key={post.id} post={post} onVote={onVote} />
             ))}
           </div>
         ) : (
@@ -499,6 +557,45 @@ function App() {
     }
   };
 
+  const handleVote = (postId: number, voteType: 'up' | 'down') => {
+    setPosts(prevPosts => prevPosts.map(post => {
+      if (post.id === postId) {
+        const currentVote = post.userVote;
+        let newUpvotes = post.upvotes;
+        let newDownvotes = post.downvotes;
+        let newUserVote: 'up' | 'down' | null = voteType;
+
+        // Remove previous vote if exists
+        if (currentVote === 'up') {
+          newUpvotes -= 1;
+        } else if (currentVote === 'down') {
+          newDownvotes -= 1;
+        }
+
+        // Apply new vote or remove if clicking same vote
+        if (currentVote === voteType) {
+          // Clicking same vote removes it
+          newUserVote = null;
+        } else {
+          // Apply new vote
+          if (voteType === 'up') {
+            newUpvotes += 1;
+          } else {
+            newDownvotes += 1;
+          }
+        }
+
+        return {
+          ...post,
+          upvotes: newUpvotes,
+          downvotes: newDownvotes,
+          userVote: newUserVote
+        };
+      }
+      return post;
+    }));
+  };
+
   const handleCreatePost = (newPost: {
     text: string;
     category: 'groups' | 'popular' | 'nearby' | 'latest';
@@ -507,10 +604,12 @@ function App() {
     const post: Post = {
       id: posts.length + 1,
       text: newPost.text,
-      likes: 0,
+      upvotes: 0,
+      downvotes: 0,
       comments: 0,
       timeAgo: 'now',
-      category: newPost.category
+      category: newPost.category,
+      userVote: null
     };
     setPosts([post, ...posts]);
   };
@@ -683,6 +782,7 @@ function App() {
         userData={userData}
         unreadMessageCount={unreadMessageCount}
         unreadNotificationCount={unreadNotificationCount}
+        onVote={handleVote}
       />
       <BottomNavigation 
         activeTab={activeTab} 
